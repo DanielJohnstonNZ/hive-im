@@ -21,6 +21,7 @@ module.exports = {
         ]
     },
   plugins: [new HtmlWebpackPlugin({
-      title: 'Hivemind'
+      title: 'Hivemind',
+      inject: 'head'
   })]
 };

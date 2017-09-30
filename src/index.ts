@@ -14,8 +14,11 @@ function pageReady() {
     peerService = new PeerService();
     peerService.eventOnPeerDescription = handleDescription;
     peerService.eventOnPeerIceCandidate = handleIceCandidate;
+    peerService.eventOnPeersChanged = handleOnPeersChange;
 
     setTimeout(polling, 1000);
+
+    handleOnPeersChange();
 }
 
 function polling() {
@@ -24,17 +27,21 @@ function polling() {
     setTimeout(polling, 1000);
 }
 
+function handleOnPeersChange() {
+    document.body.innerHTML = "Number of Peers: " + peerService.getCount();
+}
+
 function gotMessageFromServer(message: ServerMessage) {
     peerService.getById(message.source)
         .processServerMessage(message);
 }
 
 function handleIceCandidate(details: RTCIceCandidate, uuid: string) {
-    coordinationService.sendIceMessage(details, this.uuid);
+    coordinationService.sendIceMessage(details, uuid);
 }
 
 function handleDescription(details: RTCSessionDescription, uuid: string) {
     coordinationService.sendSdpMessage(details, uuid);
 }
 
-pageReady();
+window.onload = pageReady;

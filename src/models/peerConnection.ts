@@ -15,6 +15,7 @@ export class PeerConnection {
     public eventIceCandidate: (candidate: RTCIceCandidate) => void;
     public eventDescription: (description: RTCSessionDescription) => void;
     public eventOnMessage: (message : any) => void;
+    public eventOnClose: () => void;
     public uuid: string;
 
     constructor(uuid: string) {
@@ -22,6 +23,7 @@ export class PeerConnection {
         this.rtcConnection = new RTCPeerConnection(peerConnectionConfig);
         this.rtcConnection.ondatachannel = (event) => { this.handleOnDataChannel(event) }
         this.rtcConnection.onicecandidate = (event) => { this.handleOnIceCandidate(event) }
+        this.rtcConnection.oniceconnectionstatechange = (event) => { this.handleOnIceConnectionStateChange(event) }
 
         this.rtcSendChannel = this.rtcConnection.createDataChannel('sendDataChannel', null);
     }
@@ -89,6 +91,12 @@ export class PeerConnection {
     private handleOnIceCandidate(event: RTCPeerConnectionIceEvent) {
         if (event.candidate != null) {
             this.eventIceCandidate(event.candidate);
+        }
+    }
+
+    private handleOnIceConnectionStateChange(event) {
+        if (this.rtcConnection.iceConnectionState === 'disconnected') {
+            this.eventOnClose();
         }
     }
 

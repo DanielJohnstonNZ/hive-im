@@ -102,23 +102,28 @@ function pageReady() {
     peerService = new peerService_1.PeerService();
     peerService.eventOnPeerDescription = handleDescription;
     peerService.eventOnPeerIceCandidate = handleIceCandidate;
+    peerService.eventOnPeersChanged = handleOnPeersChange;
     setTimeout(polling, 1000);
+    handleOnPeersChange();
 }
 function polling() {
     peerService.messageAll("Ping");
     setTimeout(polling, 1000);
+}
+function handleOnPeersChange() {
+    document.body.innerHTML = "Number of Peers: " + peerService.getCount();
 }
 function gotMessageFromServer(message) {
     peerService.getById(message.source)
         .processServerMessage(message);
 }
 function handleIceCandidate(details, uuid) {
-    coordinationService.sendIceMessage(details, this.uuid);
+    coordinationService.sendIceMessage(details, uuid);
 }
 function handleDescription(details, uuid) {
     coordinationService.sendSdpMessage(details, uuid);
 }
-pageReady();
+window.onload = pageReady;
 
 
 /***/ }),
@@ -212,17 +217,26 @@ var PeerService = /** @class */ (function () {
         var _this = this;
         if (!this.activePeers[id]) {
             var pc = new peerConnection_1.PeerConnection(id);
-            pc.eventIceCandidate = function (candidate) { return _this.eventOnPeerIceCandidate(candidate, id); };
+            pc.eventIceCandidate = function (candidate) { _this.eventOnPeerIceCandidate(candidate, id); };
             pc.eventDescription = function (description) { return _this.eventOnPeerDescription(description, id); };
             pc.eventOnMessage = function (message) { console.log(id + " says " + message.data); };
+            pc.eventOnClose = function () { return _this.handleOnClose(id); };
             this.activePeers[id] = pc;
+            this.eventOnPeersChanged();
         }
         return this.activePeers[id];
+    };
+    PeerService.prototype.getCount = function () {
+        return Object.keys(this.activePeers).length;
     };
     PeerService.prototype.messageAll = function (message) {
         for (var i in this.activePeers) {
             this.activePeers[i].messagePeer(message);
         }
+    };
+    PeerService.prototype.handleOnClose = function (id) {
+        delete this.activePeers[id];
+        this.eventOnPeersChanged();
     };
     return PeerService;
 }());
@@ -250,6 +264,7 @@ var PeerConnection = /** @class */ (function () {
         this.rtcConnection = new RTCPeerConnection(peerConnectionConfig);
         this.rtcConnection.ondatachannel = function (event) { _this.handleOnDataChannel(event); };
         this.rtcConnection.onicecandidate = function (event) { _this.handleOnIceCandidate(event); };
+        this.rtcConnection.oniceconnectionstatechange = function (event) { _this.handleOnIceConnectionStateChange(event); };
         this.rtcSendChannel = this.rtcConnection.createDataChannel('sendDataChannel', null);
     }
     PeerConnection.prototype.processServerMessage = function (signal) {
@@ -303,6 +318,11 @@ var PeerConnection = /** @class */ (function () {
     PeerConnection.prototype.handleOnIceCandidate = function (event) {
         if (event.candidate != null) {
             this.eventIceCandidate(event.candidate);
+        }
+    };
+    PeerConnection.prototype.handleOnIceConnectionStateChange = function (event) {
+        if (this.rtcConnection.iceConnectionState === 'disconnected') {
+            this.eventOnClose();
         }
     };
     PeerConnection.prototype.handleOnDataChannel = function (event) {
