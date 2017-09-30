@@ -155,11 +155,8 @@ var Server = /** @class */ (function () {
         var _this = this;
         this.queuedMessages = [];
         this.localUuid = uuid;
-        var webSocketProtocol = 'wss';
-        if (window.location.protocol == 'http:') {
-            webSocketProtocol = 'ws';
-        }
-        this.connection = new WebSocket(webSocketProtocol + '://' + window.location.hostname + ':3434');
+        var HOST = location.origin.replace(/^http/, 'ws');
+        this.connection = new WebSocket(HOST);
         this.connection.onmessage = function (msg) { onMessage(msg); };
         this.connection.onopen = function () { return _this.handleOnOpen(); };
     }

@@ -1,21 +1,24 @@
-var WebSocketServer = require('ws').Server;
-var finalhandler = require('finalhandler')
-var http = require('http')
-var serveStatic = require('serve-static')
+const express = require('express');
+const SocketServer = require('ws').Server;
+const path = require('path');
 
 var httpLogger = require('debug')('http')
 var webSocketLogger = require('debug')('websocket')
 
-const websocketPort = 3434;
-const webPort = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
+const INDEX = path.join(__dirname, '/dist/index.html');
+
+const server = express()
+  .use(express.static('dist'))
+  .listen(PORT, () => httpLogger(`Listening on ${ PORT }`));
 
 let clients = {};
 
-var wss = new WebSocketServer({port: websocketPort});
+const wss = new SocketServer({ server });
 
-wss.on('connection', function(ws) {
+wss.on('connection', (ws) => {
     webSocketLogger('Connection Opened');
-
+    
     var clientUuid;
 
     ws.on('message', function(message) {
@@ -58,20 +61,3 @@ wss.on('connection', function(ws) {
         }
     });
 });
-
-
-
-// Serve up content folder
-var serve = serveStatic('dist', {'index': ['index.html', 'index.htm']})
- 
-// Create server
-var server = http.createServer(function onRequest (req, res) {
-    httpLogger(req.method + ' ' + req.url);
-
-    serve(req, res, finalhandler(req, res))
-})
- 
-// Listen
-server.listen(webPort, function() {
-    httpLogger('Web listening on port ' + webPort);
-})
