@@ -7,7 +7,7 @@ var httpLogger = require('debug')('http')
 var webSocketLogger = require('debug')('websocket')
 
 const websocketPort = 3434;
-const webPort = 8080;
+const webPort = process.env.PORT || 8080;
 
 let clients = {};
 

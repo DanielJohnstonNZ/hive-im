@@ -22,6 +22,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "DEBUG=http,websocket node server.js"
   },
+  "engines": {
+    "node": "8.6.0"
+  },
   "author": "",
   "license": "ISC"
 }
