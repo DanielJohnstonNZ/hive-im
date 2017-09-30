@@ -8,7 +8,7 @@ export class Server {
         this.queuedMessages = [];
         this.localUuid = uuid;
 
-        this.connection = new WebSocket('ws://localhost:3434');
+        this.connection = new WebSocket('ws://' + window.location.hostname + ':3434');
         this.connection.onmessage = (msg) => { onMessage(msg) };
         this.connection.onopen = () => this.handleOnOpen();
     }
