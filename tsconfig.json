@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "types": ["webrtc"],
+      "skipLibCheck": true
+    },
+    "files": [
+      "src/index.ts"
+    ]
+  }
