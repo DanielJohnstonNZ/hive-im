@@ -12,18 +12,18 @@ export class PeerConnection {
     public rtcReceiveChannel: RTCDataChannel;
     public rtcSendChannel: RTCDataChannel;
 
-    public eventIceCandidate: Function;
-    public eventDescription: Function;
+    public eventIceCandidate: (candidate: RTCIceCandidate) => void;
+    public eventDescription: (description: RTCSessionDescription) => void;
+    public eventOnMessage: (message : any) => void;
     public uuid: string;
 
     constructor(uuid: string) {
         this.uuid = uuid;
         this.rtcConnection = new RTCPeerConnection(peerConnectionConfig);
         this.rtcConnection.ondatachannel = (event) => { this.handleOnDataChannel(event) }
-        this.rtcConnection.onicecandidate = (event) => { this.eventIceCandidate(event) }
+        this.rtcConnection.onicecandidate = (event) => { this.handleOnIceCandidate(event) }
 
         this.rtcSendChannel = this.rtcConnection.createDataChannel('sendDataChannel', null);
-        
     }
 
     public processServerMessage(signal: ServerMessage) {
@@ -69,24 +69,27 @@ export class PeerConnection {
         }).catch(this.handleError);
     }
 
-    private setLocalDescription(details: any) {
+    private setLocalDescription(details: RTCSessionDescriptionInit) {
         let peer = this;
 
         this.rtcConnection
             .setLocalDescription(details)
             .then(function () {
                 peer.eventDescription(peer.rtcConnection.localDescription);
-            }).catch(this.handleError);
+            })
+            .catch(this.handleError);
     }
 
-    private addIceCandidate(details: any) {
+    private addIceCandidate(details: RTCIceCandidate) {
         this.rtcConnection
             .addIceCandidate(new RTCIceCandidate(details))
             .catch(this.handleError);
     }
 
-    private handleOnIceCandidate(event) {
-        this.eventIceCandidate(event, this.uuid);
+    private handleOnIceCandidate(event: RTCPeerConnectionIceEvent) {
+        if (event.candidate != null) {
+            this.eventIceCandidate(event.candidate);
+        }
     }
 
     private handleOnDataChannel(event: RTCDataChannelEvent) {
@@ -97,9 +100,8 @@ export class PeerConnection {
         this.rtcReceiveChannel.onclose = () => { this.handleReceiveChannelOnClose() };
     }
 
-    private handleReceiveChannelOnMessage(event) {
-        console.log('Received Message');
-        console.log(event);
+    private handleReceiveChannelOnMessage(event: MessageEvent) {
+        this.eventOnMessage(event);
     }
 
     private handleReceiveChannelOnOpen() {
@@ -114,7 +116,7 @@ export class PeerConnection {
 
     }
 
-    public messagePeer(message) {
+    public messagePeer(message: string) {
         if(this.rtcSendChannel.readyState == 'open') {
             this.rtcSendChannel.send(message);
         }

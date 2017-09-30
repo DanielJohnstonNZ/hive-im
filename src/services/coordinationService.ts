@@ -1,19 +1,24 @@
 import {ServerMessage, ServerMessageType} from "../models/serverMessage";
+import { Uuid } from "../helpers/uuid";
 
-export class Server {
+export class CoordinationService {
     private localUuid: string;
     private connection : WebSocket;
     private queuedMessages: object[];
-    constructor(uuid: string, onMessage: Function) {
+
+    public eventOnMessage: (message: ServerMessage) => void;
+
+    constructor() {
         this.queuedMessages = [];
-        this.localUuid = uuid;
+        this.localUuid = Uuid();
 
         var HOST = location.origin.replace(/^http/, 'ws')
         this.connection = new WebSocket(HOST);
     
-        this.connection.onmessage = (msg) => { onMessage(msg) };
+        this.connection.onmessage = (msg) => { this.handleOnMessage(msg) };
         this.connection.onopen = () => this.handleOnOpen();
     }
+
     sendSdpMessage(body: any, destination: string) {
         let sdpMessage = new ServerMessage()
         sdpMessage.source = this.localUuid;
@@ -46,5 +51,10 @@ export class Server {
         helloMessage.type = ServerMessageType.HI
 
         this.sendMessage(helloMessage);
+    }
+    private handleOnMessage(message: MessageEvent) {
+        var signal : ServerMessage = JSON.parse(message.data);
+
+        this.eventOnMessage(signal);
     }
 }

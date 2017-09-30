@@ -1,70 +1,40 @@
-import { Server } from "./helpers/server";
-import { ServerMessage, ServerMessageType } from "./models/serverMessage";
-import { PeerConnection } from "./models/peerConnection";
-
-var peers: PeerConnection[] = [];
+import { CoordinationService } from "./services/coordinationService";
+import { PeerService } from "./services/peerService";
+import { ServerMessage } from "./models/serverMessage";
 
 var receiveChannel;
-var localuuid;
-var serverConnection: Server;
 
+var coordinationService: CoordinationService;
+var peerService: PeerService;
 
 function pageReady() {
-    localuuid = uuid();
+    coordinationService = new CoordinationService();
+    coordinationService.eventOnMessage = gotMessageFromServer;
 
-    serverConnection = new Server(localuuid, gotMessageFromServer);
+    peerService = new PeerService();
+    peerService.eventOnPeerDescription = handleDescription;
+    peerService.eventOnPeerIceCandidate = handleIceCandidate;
+
+    setTimeout(polling, 1000);
 }
 
-function gotMessageFromServer(message) {
-    var signal : ServerMessage = JSON.parse(message.data);
+function polling() {
+    peerService.messageAll("Ping");
 
-    let peerConnection = getPeerConnection(signal.source);
-
-    peerConnection.processServerMessage(signal);
+    setTimeout(polling, 1000);
 }
 
-function getPeerConnection(extUuid) {
-    if (!peers[extUuid]) {
-        let pc: PeerConnection = new PeerConnection(extUuid);
-        
-        pc.eventIceCandidate = function(event) {
-            if (event.candidate != null) {
-                serverConnection.sendIceMessage(event.candidate, this.uuid);
-            }
-        };
-
-        pc.eventDescription= function(details) {
-            createdDescription(details, this.uuid);
-        } 
-        
-        peers[extUuid] = pc;
-    }
-
-    return peers[extUuid];
+function gotMessageFromServer(message: ServerMessage) {
+    peerService.getById(message.source)
+        .processServerMessage(message);
 }
 
-function createdDescription(description, extUuid) {
-    serverConnection.sendSdpMessage(description, extUuid);
+function handleIceCandidate(details: RTCIceCandidate, uuid: string) {
+    coordinationService.sendIceMessage(details, this.uuid);
 }
 
-function message() {
-    for(var i in peers) {
-        peers[i].messagePeer("hello from the othertab");
-    }
-
-    setTimeout(message, 1000);
-}
-
-setTimeout(message, 1000);
-
-// Taken from http://stackoverflow.com/a/105074/515584
-// Strictly speaking, it's not a real UUID, but it gets the job done here
-function uuid() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+function handleDescription(details: RTCSessionDescription, uuid: string) {
+    coordinationService.sendSdpMessage(details, uuid);
 }
 
 pageReady();

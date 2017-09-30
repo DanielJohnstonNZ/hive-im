@@ -91,53 +91,32 @@ var ServerMessageType;
 "use strict";
 
 exports.__esModule = true;
-var server_1 = __webpack_require__(2);
-var peerConnection_1 = __webpack_require__(3);
-var peers = [];
+var coordinationService_1 = __webpack_require__(2);
+var peerService_1 = __webpack_require__(4);
 var receiveChannel;
-var localuuid;
-var serverConnection;
+var coordinationService;
+var peerService;
 function pageReady() {
-    localuuid = uuid();
-    serverConnection = new server_1.Server(localuuid, gotMessageFromServer);
+    coordinationService = new coordinationService_1.CoordinationService();
+    coordinationService.eventOnMessage = gotMessageFromServer;
+    peerService = new peerService_1.PeerService();
+    peerService.eventOnPeerDescription = handleDescription;
+    peerService.eventOnPeerIceCandidate = handleIceCandidate;
+    setTimeout(polling, 1000);
+}
+function polling() {
+    peerService.messageAll("Ping");
+    setTimeout(polling, 1000);
 }
 function gotMessageFromServer(message) {
-    var signal = JSON.parse(message.data);
-    var peerConnection = getPeerConnection(signal.source);
-    peerConnection.processServerMessage(signal);
+    peerService.getById(message.source)
+        .processServerMessage(message);
 }
-function getPeerConnection(extUuid) {
-    if (!peers[extUuid]) {
-        var pc = new peerConnection_1.PeerConnection(extUuid);
-        pc.eventIceCandidate = function (event) {
-            if (event.candidate != null) {
-                serverConnection.sendIceMessage(event.candidate, this.uuid);
-            }
-        };
-        pc.eventDescription = function (details) {
-            createdDescription(details, this.uuid);
-        };
-        peers[extUuid] = pc;
-    }
-    return peers[extUuid];
+function handleIceCandidate(details, uuid) {
+    coordinationService.sendIceMessage(details, this.uuid);
 }
-function createdDescription(description, extUuid) {
-    serverConnection.sendSdpMessage(description, extUuid);
-}
-function message() {
-    for (var i in peers) {
-        peers[i].messagePeer("hello from the othertab");
-    }
-    setTimeout(message, 1000);
-}
-setTimeout(message, 1000);
-// Taken from http://stackoverflow.com/a/105074/515584
-// Strictly speaking, it's not a real UUID, but it gets the job done here
-function uuid() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+function handleDescription(details, uuid) {
+    coordinationService.sendSdpMessage(details, uuid);
 }
 pageReady();
 
@@ -150,17 +129,18 @@ pageReady();
 
 exports.__esModule = true;
 var serverMessage_1 = __webpack_require__(0);
-var Server = /** @class */ (function () {
-    function Server(uuid, onMessage) {
+var uuid_1 = __webpack_require__(3);
+var CoordinationService = /** @class */ (function () {
+    function CoordinationService() {
         var _this = this;
         this.queuedMessages = [];
-        this.localUuid = uuid;
+        this.localUuid = uuid_1.Uuid();
         var HOST = location.origin.replace(/^http/, 'ws');
         this.connection = new WebSocket(HOST);
-        this.connection.onmessage = function (msg) { onMessage(msg); };
+        this.connection.onmessage = function (msg) { _this.handleOnMessage(msg); };
         this.connection.onopen = function () { return _this.handleOnOpen(); };
     }
-    Server.prototype.sendSdpMessage = function (body, destination) {
+    CoordinationService.prototype.sendSdpMessage = function (body, destination) {
         var sdpMessage = new serverMessage_1.ServerMessage();
         sdpMessage.source = this.localUuid;
         sdpMessage.destination = destination;
@@ -168,7 +148,7 @@ var Server = /** @class */ (function () {
         sdpMessage.type = serverMessage_1.ServerMessageType.SDP;
         this.sendMessage(sdpMessage);
     };
-    Server.prototype.sendIceMessage = function (body, destination) {
+    CoordinationService.prototype.sendIceMessage = function (body, destination) {
         var iceMessage = new serverMessage_1.ServerMessage();
         iceMessage.source = this.localUuid;
         iceMessage.destination = destination;
@@ -176,26 +156,81 @@ var Server = /** @class */ (function () {
         iceMessage.type = serverMessage_1.ServerMessageType.ICE;
         this.sendMessage(iceMessage);
     };
-    Server.prototype.sendMessage = function (message) {
+    CoordinationService.prototype.sendMessage = function (message) {
         if (this.connection.readyState != WebSocket.OPEN) {
             console.error("Unable to send because WebSocket isn't open");
             return;
         }
         this.connection.send(JSON.stringify(message));
     };
-    Server.prototype.handleOnOpen = function () {
+    CoordinationService.prototype.handleOnOpen = function () {
         var helloMessage = new serverMessage_1.ServerMessage();
         helloMessage.source = this.localUuid;
         helloMessage.type = serverMessage_1.ServerMessageType.HI;
         this.sendMessage(helloMessage);
     };
-    return Server;
+    CoordinationService.prototype.handleOnMessage = function (message) {
+        var signal = JSON.parse(message.data);
+        this.eventOnMessage(signal);
+    };
+    return CoordinationService;
 }());
-exports.Server = Server;
+exports.CoordinationService = CoordinationService;
 
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.__esModule = true;
+// Taken from http://stackoverflow.com/a/105074/515584
+// Strictly speaking, it's not a real UUID, but it gets the job done here
+function Uuid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+exports.Uuid = Uuid;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.__esModule = true;
+var peerConnection_1 = __webpack_require__(5);
+var PeerService = /** @class */ (function () {
+    function PeerService() {
+        this.activePeers = [];
+    }
+    PeerService.prototype.getById = function (id) {
+        var _this = this;
+        if (!this.activePeers[id]) {
+            var pc = new peerConnection_1.PeerConnection(id);
+            pc.eventIceCandidate = function (candidate) { return _this.eventOnPeerIceCandidate(candidate, id); };
+            pc.eventDescription = function (description) { return _this.eventOnPeerDescription(description, id); };
+            pc.eventOnMessage = function (message) { console.log(id + " says " + message.data); };
+            this.activePeers[id] = pc;
+        }
+        return this.activePeers[id];
+    };
+    PeerService.prototype.messageAll = function (message) {
+        for (var i in this.activePeers) {
+            this.activePeers[i].messagePeer(message);
+        }
+    };
+    return PeerService;
+}());
+exports.PeerService = PeerService;
+
+
+/***/ }),
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -214,7 +249,7 @@ var PeerConnection = /** @class */ (function () {
         this.uuid = uuid;
         this.rtcConnection = new RTCPeerConnection(peerConnectionConfig);
         this.rtcConnection.ondatachannel = function (event) { _this.handleOnDataChannel(event); };
-        this.rtcConnection.onicecandidate = function (event) { _this.eventIceCandidate(event); };
+        this.rtcConnection.onicecandidate = function (event) { _this.handleOnIceCandidate(event); };
         this.rtcSendChannel = this.rtcConnection.createDataChannel('sendDataChannel', null);
     }
     PeerConnection.prototype.processServerMessage = function (signal) {
@@ -266,7 +301,9 @@ var PeerConnection = /** @class */ (function () {
             .addIceCandidate(new RTCIceCandidate(details))["catch"](this.handleError);
     };
     PeerConnection.prototype.handleOnIceCandidate = function (event) {
-        this.eventIceCandidate(event, this.uuid);
+        if (event.candidate != null) {
+            this.eventIceCandidate(event.candidate);
+        }
     };
     PeerConnection.prototype.handleOnDataChannel = function (event) {
         var _this = this;
@@ -276,8 +313,7 @@ var PeerConnection = /** @class */ (function () {
         this.rtcReceiveChannel.onclose = function () { _this.handleReceiveChannelOnClose(); };
     };
     PeerConnection.prototype.handleReceiveChannelOnMessage = function (event) {
-        console.log('Received Message');
-        console.log(event);
+        this.eventOnMessage(event);
     };
     PeerConnection.prototype.handleReceiveChannelOnOpen = function () {
         var readyState = this.rtcReceiveChannel.readyState;
