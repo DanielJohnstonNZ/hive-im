@@ -55,11 +55,45 @@ exports.PeerMessage = PeerMessage;
 "use strict";
 
 
+var __extends = this && this.__extends || function () {
+    var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+        d.__proto__ = b;
+    } || function (d, b) {
+        for (var p in b) {
+            if (b.hasOwnProperty(p)) d[p] = b[p];
+        }
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
 Object.defineProperty(exports, "__esModule", { value: true });
 var app_1 = __webpack_require__(19);
 var React = __webpack_require__(2);
 var ReactDOM = __webpack_require__(12);
-ReactDOM.render(React.createElement(app_1.App, null), document.getElementById("app"));
+// Wrap the app in a compatibility check.
+var SupportCheck = /** @class */function (_super) {
+    __extends(SupportCheck, _super);
+    function SupportCheck() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    SupportCheck.prototype.render = function () {
+        if (typeof RTCPeerConnection != 'undefined') {
+            return React.createElement(app_1.App, null);
+        }
+        var supportWarningStyle = {
+            padding: 10,
+            fontSize: 25
+        };
+        return React.createElement("div", { style: supportWarningStyle }, "Browser doesn't support WebRTC :(");
+    };
+    return SupportCheck;
+}(React.PureComponent);
+ReactDOM.render(React.createElement(SupportCheck, null), document.getElementById("app"));
 
 /***/ }),
 /* 19 */
@@ -130,7 +164,7 @@ var App = /** @class */function (_super) {
         this.peerService.messageAll(message);
     };
     App.prototype.render = function () {
-        return React.createElement("div", null, React.createElement("h1", null, "Welcome"), React.createElement(chatfeed_1.ChatFeed, { messages: this.state.messages }), React.createElement(chatwindow_1.ChatWindow, { onMessageSend: this.handleChatWindowMessageToSend.bind(this) }));
+        return React.createElement("div", null, React.createElement("div", { className: "topBar" }, React.createElement("h1", null, "Peer To Peer Chat")), React.createElement(chatfeed_1.ChatFeed, { messages: this.state.messages }), React.createElement(chatwindow_1.ChatWindow, { onMessageSend: this.handleChatWindowMessageToSend.bind(this) }));
     };
     return App;
 }(React.Component);
@@ -406,25 +440,39 @@ var windowStyle = {
     bottom: 0,
     left: 0,
     right: 0,
-    height: 100,
+    top: "85%",
     borderTop: "1px solid #AAA",
     padding: 10
 };
 var textBoxStyle = {
+    resize: "none",
+    borderRadius: 4,
+    border: "none",
+    outline: "1px solid #AAA",
+    width: "95%",
     height: "100%",
+    fontSize: "1em"
+};
+var textBoxContainerStyle = {
+    display: "inline-block",
     width: "80%",
-    borderColor: "#AAA",
-    resize: "none"
+    height: "100%"
+};
+var buttonContainerStyle = {
+    display: "inline-block",
+    width: "20%",
+    height: "100%",
+    verticalAlign: "top"
 };
 var buttonStyle = {
-    height: "100%",
-    width: "14%",
-    marginLeft: 10,
     verticalAlign: "top",
     backgroundColor: "#425BBD",
     color: "#FFF",
-    borderColor: "#FFF",
-    borderRadius: 4
+    border: "none",
+    borderRadius: 4,
+    width: "100%",
+    height: "100%",
+    fontSize: "1em"
 };
 ;
 ;
@@ -438,7 +486,7 @@ var ChatWindow = /** @class */function (_super) {
         return _this;
     }
     ChatWindow.prototype.render = function () {
-        return React.createElement("div", { style: windowStyle }, React.createElement("textarea", { style: textBoxStyle, value: this.state.message, onKeyDown: this.handleMessageOnKeydown.bind(this), onChange: this.handleMessageOnChange.bind(this) }), React.createElement("button", { style: buttonStyle, onClick: this.handleOnSend.bind(this) }, "Send"));
+        return React.createElement("div", { style: windowStyle }, React.createElement("div", { style: textBoxContainerStyle }, React.createElement("textarea", { style: textBoxStyle, value: this.state.message, onKeyDown: this.handleMessageOnKeydown.bind(this), onChange: this.handleMessageOnChange.bind(this) })), React.createElement("div", { style: buttonContainerStyle }, React.createElement("button", { style: buttonStyle, onClick: this.handleOnSend.bind(this) }, "Send")));
     };
     ChatWindow.prototype.handleOnSend = function () {
         this.props.onMessageSend(this.state.message);
@@ -487,11 +535,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(2);
 var chatFeedStyle = {
     position: "absolute",
-    top: 100,
+    top: "10%",
     left: 0,
     right: 0,
-    bottom: 100,
-    borderTop: "1px solid #AAA"
+    bottom: "15%",
+    borderTop: "1px solid #AAA",
+    padding: "30px"
 };
 var ChatFeed = /** @class */function (_super) {
     __extends(ChatFeed, _super);
