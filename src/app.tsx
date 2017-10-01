@@ -63,7 +63,7 @@ export class App extends React.Component<undefined, IAppState> {
 
     render() {
         return <div>
-            <h1>Welcome</h1>
+            <div className="topBar"><h1>Peer To Peer Chat</h1></div>
             <ChatFeed messages={this.state.messages}/>
             <ChatWindow onMessageSend={this.handleChatWindowMessageToSend.bind(this)}/>
         </div>;

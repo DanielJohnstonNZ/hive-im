@@ -4,11 +4,12 @@ import {PeerMessage} from "../models/peerMessage";
 
 const chatFeedStyle : object = {
     position: "absolute",
-    top: 100,
+    top: "10%",
     left: 0,
     right: 0,
-    bottom: 100,
-    borderTop: "1px solid #AAA"
+    bottom: "15%",
+    borderTop: "1px solid #AAA",
+    padding: "30px"
 }
 
 interface IChatFeedProps { messages: PeerMessage[] }

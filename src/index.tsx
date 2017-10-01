@@ -11,7 +11,6 @@ class SupportCheck extends React.PureComponent{
         }
 
         const supportWarningStyle: any = {
-            fontFamily: "Arial, Helvetica, sans-serif",
             padding: 10,
             fontSize: 25
         };
