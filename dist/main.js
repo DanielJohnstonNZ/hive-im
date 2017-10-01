@@ -29,26 +29,40 @@ var ServerMessageType;
 })(ServerMessageType = exports.ServerMessageType || (exports.ServerMessageType = {}));
 
 /***/ }),
-/* 11 */,
-/* 12 */,
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var app_1 = __webpack_require__(18);
-var React = __webpack_require__(3);
-var ReactDOM = __webpack_require__(11);
+var PeerMessage = /** @class */function () {
+    function PeerMessage() {}
+    return PeerMessage;
+}();
+exports.PeerMessage = PeerMessage;
+
+/***/ }),
+/* 12 */,
+/* 13 */,
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */,
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var app_1 = __webpack_require__(19);
+var React = __webpack_require__(2);
+var ReactDOM = __webpack_require__(12);
 ReactDOM.render(React.createElement(app_1.App, null), document.getElementById("app"));
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -71,9 +85,12 @@ var __extends = this && this.__extends || function () {
     };
 }();
 Object.defineProperty(exports, "__esModule", { value: true });
-var coordinationService_1 = __webpack_require__(19);
-var peerService_1 = __webpack_require__(21);
-var React = __webpack_require__(3);
+var coordinationService_1 = __webpack_require__(20);
+var peerService_1 = __webpack_require__(22);
+var peerMessage_1 = __webpack_require__(11);
+var chatwindow_1 = __webpack_require__(24);
+var chatfeed_1 = __webpack_require__(27);
+var React = __webpack_require__(2);
 var App = /** @class */function (_super) {
     __extends(App, _super);
     function App(props) {
@@ -83,14 +100,12 @@ var App = /** @class */function (_super) {
         _this.peerService = new peerService_1.PeerService();
         _this.peerService.eventOnPeerDescription = _this.handleDescription.bind(_this);
         _this.peerService.eventOnPeerIceCandidate = _this.handleIceCandidate.bind(_this);
-        _this.peerService.eventOnPeersChanged = function () {};
-        setTimeout(_this.polling.bind(_this), 1000);
+        _this.peerService.eventOnPeerMessage = _this.handleMessageFromPeer.bind(_this);
+        _this.state = {
+            messages: []
+        };
         return _this;
     }
-    App.prototype.polling = function () {
-        this.peerService.messageAll("Ping");
-        setTimeout(this.polling.bind(this), 1000);
-    };
     App.prototype.gotMessageFromServer = function (message) {
         this.peerService.getById(message.source).processServerMessage(message);
     };
@@ -100,18 +115,29 @@ var App = /** @class */function (_super) {
     App.prototype.handleDescription = function (details, uuid) {
         this.coordinationService.sendSdpMessage(details, uuid);
     };
-    App.prototype.handlePeersChange = function () {
-        console.log(this);
+    App.prototype.handleMessageFromPeer = function (message) {
+        this.setState({
+            messages: [].concat(this.state.messages, message)
+        });
+    };
+    App.prototype.handleChatWindowMessageToSend = function (message) {
+        var ownMessage = new peerMessage_1.PeerMessage();
+        ownMessage.body = message;
+        ownMessage.source = this.coordinationService.localUuid;
+        this.setState({
+            messages: [].concat(this.state.messages, ownMessage)
+        });
+        this.peerService.messageAll(message);
     };
     App.prototype.render = function () {
-        return React.createElement("h1", null, "Welcome");
+        return React.createElement("div", null, React.createElement("h1", null, "Welcome"), React.createElement(chatfeed_1.ChatFeed, { messages: this.state.messages }), React.createElement(chatwindow_1.ChatWindow, { onMessageSend: this.handleChatWindowMessageToSend.bind(this) }));
     };
     return App;
 }(React.Component);
 exports.App = App;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -119,7 +145,7 @@ exports.App = App;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var serverMessage_1 = __webpack_require__(10);
-var uuid_1 = __webpack_require__(20);
+var uuid_1 = __webpack_require__(21);
 var CoordinationService = /** @class */function () {
     function CoordinationService() {
         var _this = this;
@@ -172,7 +198,7 @@ var CoordinationService = /** @class */function () {
 exports.CoordinationService = CoordinationService;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -190,14 +216,14 @@ function Uuid() {
 exports.Uuid = Uuid;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var peerConnection_1 = __webpack_require__(22);
+var peerConnection_1 = __webpack_require__(23);
 var PeerService = /** @class */function () {
     function PeerService() {
         this.activePeers = {};
@@ -213,13 +239,12 @@ var PeerService = /** @class */function () {
                 return _this.eventOnPeerDescription(description, id);
             };
             pc.eventOnMessage = function (message) {
-                console.log(id + " says " + message.data);
+                return _this.eventOnPeerMessage(message);
             };
             pc.eventOnClose = function () {
                 return _this.handleOnClose(id);
             };
             this.activePeers[id] = pc;
-            this.eventOnPeersChanged();
         }
         return this.activePeers[id];
     };
@@ -233,14 +258,13 @@ var PeerService = /** @class */function () {
     };
     PeerService.prototype.handleOnClose = function (id) {
         delete this.activePeers[id];
-        this.eventOnPeersChanged();
     };
     return PeerService;
 }();
 exports.PeerService = PeerService;
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -248,6 +272,7 @@ exports.PeerService = PeerService;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var serverMessage_1 = __webpack_require__(10);
+var peerMessage_1 = __webpack_require__(11);
 var peerConnectionConfig = {
     'iceServers': [{ 'urls': 'stun:stun.services.mozilla.com' }, { 'urls': 'stun:stun.l.google.com:19302' }]
 };
@@ -330,7 +355,10 @@ var PeerConnection = /** @class */function () {
         };
     };
     PeerConnection.prototype.handleReceiveChannelOnMessage = function (event) {
-        this.eventOnMessage(event);
+        var newMessage = new peerMessage_1.PeerMessage();
+        newMessage.source = this.uuid;
+        newMessage.body = event.data;
+        this.eventOnMessage(newMessage);
     };
     PeerConnection.prototype.handleReceiveChannelOnOpen = function () {
         var readyState = this.rtcReceiveChannel.readyState;
@@ -348,6 +376,137 @@ var PeerConnection = /** @class */function () {
 }();
 exports.PeerConnection = PeerConnection;
 
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __extends = this && this.__extends || function () {
+    var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+        d.__proto__ = b;
+    } || function (d, b) {
+        for (var p in b) {
+            if (b.hasOwnProperty(p)) d[p] = b[p];
+        }
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(2);
+var windowStyle = {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    borderTop: "1px solid #AAA",
+    padding: 10
+};
+var textBoxStyle = {
+    height: "100%",
+    width: "80%",
+    borderColor: "#AAA",
+    resize: "none"
+};
+var buttonStyle = {
+    height: "100%",
+    width: "14%",
+    marginLeft: 10,
+    verticalAlign: "top",
+    backgroundColor: "#425BBD",
+    color: "#FFF",
+    borderColor: "#FFF",
+    borderRadius: 4
+};
+;
+;
+var ChatWindow = /** @class */function (_super) {
+    __extends(ChatWindow, _super);
+    function ChatWindow(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            message: ""
+        };
+        return _this;
+    }
+    ChatWindow.prototype.render = function () {
+        return React.createElement("div", { style: windowStyle }, React.createElement("textarea", { style: textBoxStyle, value: this.state.message, onKeyDown: this.handleMessageOnKeydown.bind(this), onChange: this.handleMessageOnChange.bind(this) }), React.createElement("button", { style: buttonStyle, onClick: this.handleOnSend.bind(this) }, "Send"));
+    };
+    ChatWindow.prototype.handleOnSend = function () {
+        this.props.onMessageSend(this.state.message);
+        this.setState({ message: "" });
+    };
+    ChatWindow.prototype.handleMessageOnChange = function (event) {
+        this.setState({ message: event.target.value });
+    };
+    ChatWindow.prototype.handleMessageOnKeydown = function (event) {
+        // If Enter was pressed, treat this as a send.
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            this.handleOnSend();
+        }
+    };
+    return ChatWindow;
+}(React.Component);
+exports.ChatWindow = ChatWindow;
+
+/***/ }),
+/* 25 */,
+/* 26 */,
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var __extends = this && this.__extends || function () {
+    var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function (d, b) {
+        d.__proto__ = b;
+    } || function (d, b) {
+        for (var p in b) {
+            if (b.hasOwnProperty(p)) d[p] = b[p];
+        }
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() {
+            this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+}();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(2);
+var chatFeedStyle = {
+    position: "absolute",
+    top: 100,
+    left: 0,
+    right: 0,
+    bottom: 100,
+    borderTop: "1px solid #AAA"
+};
+var ChatFeed = /** @class */function (_super) {
+    __extends(ChatFeed, _super);
+    function ChatFeed() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    ChatFeed.prototype.render = function () {
+        return React.createElement("div", { style: chatFeedStyle }, this.props.messages.map(function (message, index) {
+            return React.createElement("span", { key: index }, "[", message.source, "] - ", message.body, React.createElement("br", null));
+        }));
+    };
+    return ChatFeed;
+}(React.Component);
+exports.ChatFeed = ChatFeed;
+
 /***/ })
-],[17]);
+],[18]);
 //# sourceMappingURL=main.js.map
