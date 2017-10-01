@@ -1,4 +1,5 @@
 import { ServerMessage, ServerMessageType } from "./serverMessage";
+import { PeerMessage } from "./peerMessage";
 
 const peerConnectionConfig = {
     'iceServers': [
@@ -14,7 +15,7 @@ export class PeerConnection {
 
     public eventIceCandidate: (candidate: RTCIceCandidate) => void;
     public eventDescription: (description: RTCSessionDescription) => void;
-    public eventOnMessage: (message : any) => void;
+    public eventOnMessage: (message : PeerMessage) => void;
     public eventOnClose: () => void;
     public uuid: string;
 
@@ -109,7 +110,12 @@ export class PeerConnection {
     }
 
     private handleReceiveChannelOnMessage(event: MessageEvent) {
-        this.eventOnMessage(event);
+        let newMessage = new PeerMessage();
+
+        newMessage.source = this.uuid;
+        newMessage.body = event.data;
+
+        this.eventOnMessage(newMessage);
     }
 
     private handleReceiveChannelOnOpen() {

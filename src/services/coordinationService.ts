@@ -2,7 +2,7 @@ import {ServerMessage, ServerMessageType} from "../models/serverMessage";
 import { Uuid } from "../helpers/uuid";
 
 export class CoordinationService {
-    private localUuid: string;
+    public localUuid: string;
     private connection : WebSocket;
     private queuedMessages: object[];
 
