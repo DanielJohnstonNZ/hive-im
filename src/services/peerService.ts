@@ -1,12 +1,12 @@
 import { PeerConnection } from "../models/peerConnection";
-
+import { PeerMessage } from "../models/peerMessage";
 
 export class PeerService {
     private activePeers: {[id: string] : PeerConnection; };
 
     public eventOnPeerIceCandidate: (details: RTCIceCandidate, uuid: string) => void;
     public eventOnPeerDescription: (details: RTCSessionDescription, uuid: string) => void;
-    public eventOnPeersChanged: () => void;
+    public eventOnPeerMessage: (message: PeerMessage) => void;
 
     constructor() {
         this.activePeers = {};
@@ -18,12 +18,10 @@ export class PeerService {
             
             pc.eventIceCandidate = (candidate) =>{ this.eventOnPeerIceCandidate(candidate, id); }
             pc.eventDescription = (description) => this.eventOnPeerDescription(description, id);
-            pc.eventOnMessage = (message) => {console.log(id + " says " + message.data)};
+            pc.eventOnMessage = (message) => this.eventOnPeerMessage(message);
             pc.eventOnClose = () => this.handleOnClose(id);
             
             this.activePeers[id] = pc;
-
-            this.eventOnPeersChanged();
         }
     
         return this.activePeers[id];
@@ -33,7 +31,7 @@ export class PeerService {
         return Object.keys(this.activePeers).length;
     }
 
-    public messageAll(message: any) {
+    public messageAll(message: string) {
         for(var i in this.activePeers) {
             this.activePeers[i].messagePeer(message);
         }
@@ -41,8 +39,6 @@ export class PeerService {
 
     private handleOnClose(id: string) {
         delete this.activePeers[id];
-
-        this.eventOnPeersChanged();
     }
 
 }

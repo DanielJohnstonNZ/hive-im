@@ -1,11 +1,16 @@
 import { CoordinationService } from "./services/coordinationService";
 import { PeerService } from "./services/peerService";
 import { ServerMessage } from "./models/serverMessage";
+import { PeerMessage } from "./models/peerMessage";
+
+import {ChatWindow} from "./components/chatwindow";
+import {ChatFeed} from "./components/chatfeed";
 
 import * as React from "react";
 
+interface IAppState {messages: PeerMessage[]}
 
-export class App extends React.Component<undefined, undefined> {
+export class App extends React.Component<undefined, IAppState> {
     private coordinationService: CoordinationService;
     private peerService: PeerService;
 
@@ -18,16 +23,11 @@ export class App extends React.Component<undefined, undefined> {
         this.peerService = new PeerService();
         this.peerService.eventOnPeerDescription = this.handleDescription.bind(this);
         this.peerService.eventOnPeerIceCandidate = this.handleIceCandidate.bind(this);
-        this.peerService.eventOnPeersChanged = () =>  {};
+        this.peerService.eventOnPeerMessage = this.handleMessageFromPeer.bind(this);
 
-        
-        setTimeout(this.polling.bind(this), 1000);
-    }
-
-    private polling() {
-        this.peerService.messageAll("Ping");
-
-        setTimeout(this.polling.bind(this), 1000);
+        this.state = {
+            messages: []
+        };
     }
 
     private gotMessageFromServer(message: ServerMessage) {
@@ -43,11 +43,29 @@ export class App extends React.Component<undefined, undefined> {
         this.coordinationService.sendSdpMessage(details, uuid);
     }
 
-    private handlePeersChange() {
-        console.log(this);
+    private handleMessageFromPeer(message: PeerMessage) {
+        this.setState({
+            messages: [].concat(this.state.messages, message)
+        });
     }
 
+    private handleChatWindowMessageToSend(message: string) {
+        let ownMessage = new PeerMessage;
+         ownMessage.body = message;
+         ownMessage.source = this.coordinationService.localUuid;
+
+         this.setState({
+            messages: [].concat(this.state.messages, ownMessage)
+        });
+
+        this.peerService.messageAll(message);
+    } 
+
     render() {
-        return <h1>Welcome</h1>;
+        return <div>
+            <h1>Welcome</h1>
+            <ChatFeed messages={this.state.messages}/>
+            <ChatWindow onMessageSend={this.handleChatWindowMessageToSend.bind(this)}/>
+        </div>;
     }
 }
