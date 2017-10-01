@@ -9,6 +9,10 @@ const PORT = process.env.PORT || 8080;
 const INDEX = path.join(__dirname, '/dist/index.html');
 
 const server = express()
+    .use(function (req, res, next) {
+        httpLogger(req.url);
+        next();
+    })
   .use(express.static('dist'))
   .listen(PORT, () => httpLogger(`Listening on ${ PORT }`));
 
