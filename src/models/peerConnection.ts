@@ -94,7 +94,7 @@ export class PeerConnection {
         }
     }
 
-    private handleOnIceConnectionStateChange(event) {
+    private handleOnIceConnectionStateChange(event: Event) {
         if (this.rtcConnection.iceConnectionState === 'disconnected') {
             this.eventOnClose();
         }

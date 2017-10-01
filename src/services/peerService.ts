@@ -2,14 +2,14 @@ import { PeerConnection } from "../models/peerConnection";
 
 
 export class PeerService {
-    private activePeers: PeerConnection[];
+    private activePeers: {[id: string] : PeerConnection; };
 
     public eventOnPeerIceCandidate: (details: RTCIceCandidate, uuid: string) => void;
     public eventOnPeerDescription: (details: RTCSessionDescription, uuid: string) => void;
     public eventOnPeersChanged: () => void;
 
     constructor() {
-        this.activePeers = [];
+        this.activePeers = {};
     }
 
     public getById(id: string) {
