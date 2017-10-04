@@ -2,6 +2,8 @@ const express = require('express');
 const SocketServer = require('ws').Server;
 const path = require('path');
 
+var uuid = require('uuid/v4')
+
 var httpLogger = require('debug')('http')
 var webSocketLogger = require('debug')('websocket')
 
@@ -21,38 +23,40 @@ let clients = {};
 const wss = new SocketServer({ server });
 
 wss.on('connection', (ws) => {
-    webSocketLogger('Connection Opened');
+    var clientUuid = uuid();
+    webSocketLogger('Connection Opened: ' + clientUuid);
     
-    var clientUuid;
+    for (var existing in clients) {
+        webSocketLogger("Notifying " + existing);
+        clients[existing].send(JSON.stringify({source: clientUuid, type: 0}));
+    }
+
+    // Add the new client to the directory.
+    clients[clientUuid] = ws;
 
     ws.on('message', function(message) {
-        var messageObj = JSON.parse(message);
+        var messageObj;
+
+        try
+        {
+            messageObj = JSON.parse(message);
+        }
+        catch (e)
+        {
+            webSocketLogger("Invalid message received: " + message);
+            return;
+        }
+
         webSocketLogger(messageObj);
 
-        switch(messageObj.type) {
-            case 0:
-                clientUuid = messageObj.source;
+        webSocketLogger("Message received for " + messageObj.destination);
+        messageObj.source = clientUuid;
 
-                webSocketLogger("Hi received.")
-                for (var existing in clients) {
-                    webSocketLogger("Notifying " + existing);
-                    clients[existing].send(message);
-                }
-    
-                // Add the new client to the directory.
-                clients[messageObj.source] = ws;
-            break;
-            case 1:
-            case 2:
-                webSocketLogger("Message received for " + messageObj.destination);
-
-                if (messageObj.destination && clients[messageObj.destination]) {
-                    clients[messageObj.destination].send(message);
-                    webSocketLogger("Message passed to " + messageObj.destination)
-                } else {
-                    webSocketLogger("Client not found");
-                }
-            break;
+        if (messageObj.destination && clients[messageObj.destination]) {
+            clients[messageObj.destination].send(JSON.stringify(messageObj));
+            webSocketLogger("Message passed to " + messageObj.destination)
+        } else {
+            webSocketLogger("Client not found");
         }
     });
 

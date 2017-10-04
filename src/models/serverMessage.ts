@@ -3,6 +3,7 @@ export class ServerMessage{
     public destination: string;
     public type: ServerMessageType;
     public body: any;
+    public isProcessed: boolean;
 }
 
 export enum ServerMessageType{

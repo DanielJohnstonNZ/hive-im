@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import {PeerMessage} from "../models/peerMessage";
+import {PeerMessage} from "../models";
 
 const chatFeedStyle : object = {
     position: "absolute",
