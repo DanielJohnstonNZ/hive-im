@@ -6,8 +6,7 @@ module.exports = {
     context: path.join(__dirname, 'src'),
     entry: {
         main: './index.tsx',
-        adapter: './adapter.js',
-        vendor: ['react', 'react-dom']
+        vendor: ['react', 'react-dom', 'webrtc-adapter']
     },
     devtool: "source-map",
     output: {
@@ -15,7 +14,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     resolve: {
-        extensions: [".ts", ".tsx", ".js"],
+        extensions: [".ts", ".tsx", ".js", ".css"],
     },
     module: {
         loaders: [

@@ -3,27 +3,114 @@
     <head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Chat App</title>
+        <title>Swarmr</title>
         <style>
-			body {
-            	font-family: "Arial, Helvetica, sans-serif"
-			}
+            body{
+                font-family: Verdana, Geneva, Tahoma, sans-serif
+            }
+            #peers-container{
+                background-color: #555;
+                position: absolute;
+                top: 0px;
+                bottom: 0px;
+                left: 0px;
+                width: 20%;
+                padding-top: 40px; 
+            }
 
-			.topBar{
-				position: absolute;
-				top: 0;
-				left: 0;
-				right: 0;
-				bottom: 90%;
-				background-color: #EEE; 
-			}
+            .peer{
+                padding: 5px;
+                color: white;
+            }
 
-			.topBar h1{
-				height: 90%;
-				padding: 10px;
-				margin: 0
-			}
-		</style>
+            .connected{
+                color: lime;
+            }
+
+            #feed-container{
+                position: absolute;
+                /*left: 20%;*/
+                left: 0px;
+                top: 40px;
+                bottom: 40px;
+                right: 0px;
+                overflow-y: auto;
+            }
+
+            #chat-container{
+                position: absolute;
+                /*left: 20%;*/
+                left: 0px;
+                bottom: 0px;
+                right: 0px;
+                height: 40px;
+                border: none;
+                border-top: 1px solid #555;
+            }
+
+            #chat-container input{
+                width: 100%;
+                font-size: 1em;
+                line-height: 1em;
+                border: none;
+                height: 100%;
+                outline: none;
+                padding-right: 45px;
+            }
+
+            .chat {
+                display: inline-block;
+                width: auto;
+                padding: 10px;
+                margin: 5px;
+                border-radius: 4px;
+                font-size: 1em;
+                border: 1px solid #999;
+                background: #ccc;
+            }
+
+            .chat-time{
+                font-size: 0.7em;
+                color: #444;
+                display: inline-block;
+            }
+            .chat-user {
+                font-size: 0.8em;
+                color: #444;
+                display: inline-block;
+            }
+
+            .send-icon {
+                cursor: pointer;
+                position: absolute;
+                right: 0px;
+                top: 0px;
+                width: 36px;
+                height: 36px;
+                background-size: 36px 36px;
+                margin-top: 2px;
+                background-image: url(data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTYuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjY0cHgiIGhlaWdodD0iNjRweCIgdmlld0JveD0iMCAwIDUzNS41IDUzNS41IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MzUuNSA1MzUuNTsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8Zz4KCTxnIGlkPSJzZW5kIj4KCQk8cG9seWdvbiBwb2ludHM9IjAsNDk3LjI1IDUzNS41LDI2Ny43NSAwLDM4LjI1IDAsMjE2Ljc1IDM4Mi41LDI2Ny43NSAwLDMxOC43NSAgICIgZmlsbD0iIzAwMDAwMCIvPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=)
+            }
+
+            #topbar-container {
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                /*left: 20%;*/
+                left: 0px;
+                height: 40px;
+                border-bottom: 1px solid #999;
+            }
+
+            #topbar-container h1 {
+                font-size: 30px;
+                line-height: 30px;
+                margin: 0;
+                padding: 0;
+                padding-top: 5px;
+                padding-left: 10px;
+            }
+        </style>
     </head>
     <body>
         <div id="app"></div>

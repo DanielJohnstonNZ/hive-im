@@ -4,9 +4,12 @@ import {ActionTypes} from "../actions"
 export function appReducer(state: State = new State(), action: any) : State {
     switch (action.type) {
         case ActionTypes.PEER_RECEIVE_MESSAGE:
+            action.message.timestamp = new Date;
+
             return {...state, messages: [...state.messages, action.message]};
         case ActionTypes.PEER_SEND_MESSAGE:
             action.message.source = state.uuid;
+            action.message.timestamp = new Date;
 
             return {...state, messages: [...state.messages, action.message]};
         case ActionTypes.SERVER_RECEIVE_MESSAGE:
