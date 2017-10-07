@@ -1,4 +1,4 @@
-import {ServerMessage, ServerMessageType, State} from "../models"
+import {ServerMessage, ServerMessageType, State, Peer} from "../models"
 import {ActionTypes} from "../actions"
 
 export function appReducer(state: State = new State(), action: any) : State {
@@ -18,6 +18,11 @@ export function appReducer(state: State = new State(), action: any) : State {
                 return {...state, uuid: action.message.destination}
             }
             return state;
+        case ActionTypes.PEER_CONNECTED:
+            return {...state, peers: [...state.peers, action.peer]};
+        case ActionTypes.PEER_DISCONNECTED:
+            return {...state, peers: state.peers.filter((peer: Peer) => peer.id != action.peer.id)}
+        
     }
     return state;
 }

@@ -1,5 +1,4 @@
 import {PeerConnection} from "./peerConnection"
-import {PeerMessage} from "../models"
 
 export class PeerFactory {
     private activePeers: { [id: string]: PeerConnection; };
@@ -22,7 +21,7 @@ export class PeerFactory {
         return this.activePeers[id];
     }
 
-    public messageAll(message: PeerMessage) {
+    public messageAll(message: string) {
         for (var i in this.activePeers) {
             this.activePeers[i].messagePeer(message);
         }

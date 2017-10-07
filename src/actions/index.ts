@@ -1,11 +1,12 @@
-import {ServerMessage, ServerMessageType} from "../models/serverMessage"
-import {PeerMessage} from "../models/peerMessage"
+import {ServerMessage, ServerMessageType, PeerMessage, Peer} from "../models"
 
 export enum ActionTypes {
     SERVER_SEND_MESSAGE,
     SERVER_RECEIVE_MESSAGE,
     PEER_RECEIVE_MESSAGE,
-    PEER_SEND_MESSAGE
+    PEER_SEND_MESSAGE,
+    PEER_CONNECTED,
+    PEER_DISCONNECTED
 }
 
 export function serverSendMessage(destination: string, body: any, type: ServerMessageType) {
@@ -29,10 +30,15 @@ export function serverReceiveMessage(message: string) {
     }
 }
 
-export function peerReceiveMessage(message: PeerMessage) {
+export function peerReceiveMessage(uuid: string, body: string) {
+    let newMessage = new PeerMessage();
+    
+    newMessage.source = uuid;
+    newMessage.body = body;
+
     return {
         type: ActionTypes.PEER_RECEIVE_MESSAGE,
-        message
+        newMessage
     }
 }
 
@@ -43,5 +49,27 @@ export function peerSendMessage(message: string) {
     return {
         type: ActionTypes.PEER_SEND_MESSAGE,
         message: peerMessage
+    }
+}
+
+export function peerConnected(id: string) {
+    let newPeer = new Peer;
+    
+    newPeer.id = id;
+
+    return {
+        type: ActionTypes.PEER_CONNECTED,
+        peer: newPeer
+    }
+}
+
+export function peerDisconnected(id: string) {
+    let peer = new Peer;
+    
+    peer.id = id;
+
+    return {
+        type: ActionTypes.PEER_DISCONNECTED,
+        peer: peer
     }
 }

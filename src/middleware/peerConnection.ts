@@ -1,5 +1,5 @@
-import { PeerMessage, ServerMessageType } from "../models";
-import { serverSendMessage, peerReceiveMessage } from "../actions"
+import { ServerMessageType } from "../models";
+import * as Actions from "../actions"
 import { WebRTCSupport } from "../helpers/webRtcSupport"
 
 const peerConnectionConfig = {
@@ -66,7 +66,7 @@ export class PeerConnection {
     private setLocalDescription(details: RTCSessionDescriptionInit) {
         this.rtcConnection
             .setLocalDescription(details)
-            .then(() => this.dispatch(serverSendMessage(
+            .then(() => this.dispatch(Actions.serverSendMessage(
                 this.uuid, 
                 this.rtcConnection.localDescription, 
                 ServerMessageType.SDP))
@@ -75,7 +75,7 @@ export class PeerConnection {
 
     private handleOnIceCandidate(event: RTCPeerConnectionIceEvent) {
         if (event.candidate != null) {
-            this.dispatch(serverSendMessage(this.uuid, event.candidate, ServerMessageType.ICE));
+            this.dispatch(Actions.serverSendMessage(this.uuid, event.candidate, ServerMessageType.ICE));
         }
     }
 
@@ -88,25 +88,20 @@ export class PeerConnection {
     }
 
     private handleReceiveChannelOnMessage(event: MessageEvent) {
-        let newMessage = new PeerMessage();
-
-        newMessage.source = this.uuid;
-        newMessage.body = event.data;
-
-        this.dispatch(peerReceiveMessage(newMessage));
+        this.dispatch(Actions.peerReceiveMessage(this.uuid, event.data));
     }
 
     private handleReceiveChannelOnOpen() {
-        var readyState = this.rtcReceiveChannel.readyState;
+        this.dispatch(Actions.peerConnected(this.uuid));
     }
 
     private handleReceiveChannelOnClose() {
-        var readyState = this.rtcSendChannel.readyState;
+        console.log("closed");
     }
 
-    public messagePeer(message: PeerMessage) {
+    public messagePeer(message: string) {
         if (this.rtcSendChannel.readyState == 'open') {
-            this.rtcSendChannel.send(message.body);
+            this.rtcSendChannel.send(message);
         }
     }
 }

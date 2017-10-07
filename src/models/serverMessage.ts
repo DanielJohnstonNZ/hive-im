@@ -7,7 +7,8 @@ export class ServerMessage{
 }
 
 export enum ServerMessageType{
-    HI = 0,
-    SDP = 1,
-    ICE = 2
+    HI = 0, // New Peer
+    SDP = 1, // SDP Information
+    ICE = 2, // ICE Information
+    BYE = 3 // Peer Disconnected
 }

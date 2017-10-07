@@ -1,7 +1,7 @@
 import { ServerMessageType } from "../models";
 import {PeerFactory} from "./peerFactory"
 
-import { ActionTypes, serverSendMessage, peerReceiveMessage, serverReceiveMessage } from "../actions"
+import { ActionTypes, serverReceiveMessage, peerDisconnected } from "../actions"
 import { Middleware, Dispatch, MiddlewareAPI } from "redux"
 
 export const PeerMiddleware: Middleware = <S>({ getState, dispatch }: MiddlewareAPI<S>) => {
@@ -30,11 +30,13 @@ export const PeerMiddleware: Middleware = <S>({ getState, dispatch }: Middleware
                             ps.getById(action.message.source)
                                 .addRemoteDescription(action.message.body);
                             break;
+                        case ServerMessageType.BYE:
+                            dispatch(peerDisconnected(action.message.source))
                     }
 
                     return next(action)
                 case ActionTypes.PEER_SEND_MESSAGE:
-                    ps.messageAll(action.message);
+                    ps.messageAll(action.message.body);
 
                     return next(action);
                 default:

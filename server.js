@@ -67,5 +67,11 @@ wss.on('connection', (ws) => {
         } else {
             webSocketLogger('Connection Closed to unknown');
         }
+
+        // Notify other clients of the disconnection.
+        for (var existing in clients) {
+            webSocketLogger("Notifying " + existing);
+            clients[existing].send(JSON.stringify({source: clientUuid, type: 3}));
+        }
     });
 });
