@@ -1,75 +1,85 @@
-import {ServerMessage, ServerMessageType, PeerMessage, Peer} from "../models"
+import {Message, MessageType, Peer, Info} from "../models"
 
-export enum ActionTypes {
-    SERVER_SEND_MESSAGE,
-    SERVER_RECEIVE_MESSAGE,
-    PEER_RECEIVE_MESSAGE,
-    PEER_SEND_MESSAGE,
+export enum ActionTypeKeys {
+    SEND_MESSAGE,
+    RECEIVE_MESSAGE,
     PEER_CONNECTED,
-    PEER_DISCONNECTED
+    PEER_DISCONNECTED,
+    INFO_UPDATED
 }
 
-export function serverSendMessage(destination: string, body: any, type: ServerMessageType) {
-    let message: ServerMessage = new ServerMessage;
+export interface ISendMessageAction{
+    type: ActionTypeKeys.SEND_MESSAGE,
+    message: Message
+}
+
+export interface IReceiveMessageAction{
+    type: ActionTypeKeys.RECEIVE_MESSAGE,
+    message: Message
+}
+
+export interface IPeerConnectedAction{
+    type: ActionTypeKeys.PEER_CONNECTED,
+    peer: Peer
+}
+
+export interface IPeerDisconnectedAction {
+    type: ActionTypeKeys.PEER_DISCONNECTED,
+    peer: Peer
+}
+
+export interface IInfoUpdatedAction {
+    type: ActionTypeKeys.INFO_UPDATED,
+    info: Info
+}
+
+export function sendTextMessage(body: string) : ISendMessageAction {
+    let message: Message = new Message;
     message.body = body;
-    message.destination = destination
-    message.type = type;
+    message.type = MessageType.TEXT;
 
     return {
-        type: ActionTypes.SERVER_SEND_MESSAGE,
-        message: JSON.stringify(message)
+        type: ActionTypeKeys.SEND_MESSAGE,
+        message: message
     }
 }
 
-export function serverReceiveMessage(message: string) {
-    let parsedMessage : ServerMessage = JSON.parse(message);
-
+export function receiveTextMessage(message: Message) : IReceiveMessageAction {
     return {
-        type: ActionTypes.SERVER_RECEIVE_MESSAGE,
-        message: parsedMessage
+        type: ActionTypeKeys.RECEIVE_MESSAGE,
+        message: message
     }
 }
 
-export function peerReceiveMessage(uuid: string, body: string) {
-    let newMessage = new PeerMessage();
-    
-    newMessage.source = uuid;
-    newMessage.body = body;
-
-    return {
-        type: ActionTypes.PEER_RECEIVE_MESSAGE,
-        newMessage
-    }
-}
-
-export function peerSendMessage(message: string) {
-    let peerMessage: PeerMessage = new PeerMessage;
-    peerMessage.body = message;
-
-    return {
-        type: ActionTypes.PEER_SEND_MESSAGE,
-        message: peerMessage
-    }
-}
-
-export function peerConnected(id: string) {
+export function peerConnected(id: string) : IPeerConnectedAction {
     let newPeer = new Peer;
     
     newPeer.id = id;
 
     return {
-        type: ActionTypes.PEER_CONNECTED,
+        type: ActionTypeKeys.PEER_CONNECTED,
         peer: newPeer
     }
 }
 
-export function peerDisconnected(id: string) {
+
+export function peerDisconnected(id: string) : IPeerDisconnectedAction {
     let peer = new Peer;
     
     peer.id = id;
 
     return {
-        type: ActionTypes.PEER_DISCONNECTED,
+        type: ActionTypeKeys.PEER_DISCONNECTED,
         peer: peer
     }
 }
+
+export function infoUpdated(info: Info) : IInfoUpdatedAction {
+    return {
+        type: ActionTypeKeys.INFO_UPDATED,
+        info: info
+    }
+}
+
+export type IActions = ISendMessageAction | IReceiveMessageAction
+    | IPeerConnectedAction | IPeerDisconnectedAction | IInfoUpdatedAction

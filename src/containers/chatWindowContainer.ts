@@ -1,16 +1,16 @@
 import { connect } from "react-redux"
 import { ChatWindow } from "../components"
+import { State } from "../models"
+import { sendTextMessage } from "../actions"
 
-import { peerSendMessage } from "../actions"
-
-const mapStateToProps = (state: any, ownProps: any) => {
+const mapStateToProps = (state: State, ownProps: any) => {
   return {
   }
 }
 
 const mapDispatchToProps = (dispatch: any, ownProps: any) => {
   return {
-    onMessageSend: (message: string) => dispatch(peerSendMessage(message))
+    onMessageSend: (message: string) => dispatch(sendTextMessage(message))
   }
 }
 

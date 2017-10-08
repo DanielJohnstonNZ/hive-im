@@ -1,7 +1,8 @@
 import { connect } from "react-redux"
 import { PeerWindow } from "../components"
+import { State } from "../models"
 
-const mapStateToProps = (state: any, ownProps: any) => {
+const mapStateToProps = (state: State, ownProps: any) => {
   return {
       peers: state.peers
   }

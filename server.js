@@ -31,6 +31,14 @@ wss.on('connection', (ws) => {
         clients[existing].send(JSON.stringify({source: clientUuid, type: 0}));
     }
 
+    // Send the info packet to the client.
+    ws.send(JSON.stringify({
+        type: 5,
+        body: {
+            uuid: clientUuid
+        }
+    }));
+
     // Add the new client to the directory.
     clients[clientUuid] = ws;
 

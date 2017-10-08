@@ -1,7 +1,7 @@
-import {PeerMessage, Peer} from ".";
+import {Message, Peer} from ".";
 
 export class State {
-    messages: PeerMessage[];
+    messages: Message[];
     uuid: string;
     peers: Peer[];
 
