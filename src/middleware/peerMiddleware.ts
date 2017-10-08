@@ -1,10 +1,10 @@
-import { MessageType, Message } from "../models";
+import { MessageType, Message, Peer } from "../models";
 import {PeerFactory} from "./peerFactory"
 
 import * as Actions from "../actions"
 import { Middleware, Dispatch, MiddlewareAPI } from "redux"
 
-export const PeerMiddleware: Middleware = <S>({dispatch }: MiddlewareAPI<S>) => {
+export const PeerMiddleware: Middleware = <S>({dispatch, getState }: MiddlewareAPI<S>) => {
     let ps: PeerFactory = new PeerFactory();
     let connection: WebSocket = new WebSocket(location.origin.replace(/^http/, 'ws'));
 
@@ -18,12 +18,25 @@ export const PeerMiddleware: Middleware = <S>({dispatch }: MiddlewareAPI<S>) => 
             case MessageType.TEXT:
                 dispatch(Actions.receiveTextMessage(message));
                 break;
+            case MessageType.INFO:
+                dispatch(Actions.peerUpdated(message.body));
+                break;
         }
     }
 
     // Handle new connection.
-    ps.onConnection = (id: string) => {
-        dispatch(Actions.peerConnected(id));
+    ps.onConnection = (peer: Peer) => {
+        let state: any = getState();
+        let localInfo: Peer = state.local;
+        let infoMsg: Message = new Message;
+
+        infoMsg.body = localInfo;
+        infoMsg.type = MessageType.INFO;
+
+        ps.getConnection(peer)
+            .messagePeer(infoMsg);
+
+        dispatch(Actions.peerConnected(peer));
     }
 
     // Handle a new message on the websocket connection.
@@ -31,19 +44,21 @@ export const PeerMiddleware: Middleware = <S>({dispatch }: MiddlewareAPI<S>) => 
         let message: Message = JSON.parse(event.data);
         switch (message.type) {
             case MessageType.HI:
-                ps.getById(message.source)
+                ps.getConnection(message.source)
                     .createOffer();
+
+                
                 break;
             case MessageType.SDP:
-                ps.getById(message.source)
+                ps.getConnection(message.source)
                     .addRemoteDescription(message.body);
                 break;
             case MessageType.ICE:
-                ps.getById(message.source)
+                ps.getConnection(message.source)
                     .addIceCandidate(message.body);
                 break;
             case MessageType.BYE:
-                dispatch(Actions.peerDisconnected(message.source));
+                dispatch(Actions.peerDisconnected(message.source.id));
                 break;
             case MessageType.INFO:
                 dispatch(Actions.infoUpdated(message.body));

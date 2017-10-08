@@ -1,10 +1,11 @@
-import {Message, MessageType, Peer, Info} from "../models"
+import {Message, MessageType, Peer} from "../models"
 
 export enum ActionTypeKeys {
     SEND_MESSAGE,
     RECEIVE_MESSAGE,
     PEER_CONNECTED,
     PEER_DISCONNECTED,
+    PEER_UPDATED,
     INFO_UPDATED
 }
 
@@ -28,9 +29,14 @@ export interface IPeerDisconnectedAction {
     peer: Peer
 }
 
+export interface IPeerUpdatedAction {
+    type: ActionTypeKeys.PEER_UPDATED,
+    peer: Peer
+}
+
 export interface IInfoUpdatedAction {
     type: ActionTypeKeys.INFO_UPDATED,
-    info: Info
+    peer: Peer
 }
 
 export function sendTextMessage(body: string) : ISendMessageAction {
@@ -51,14 +57,10 @@ export function receiveTextMessage(message: Message) : IReceiveMessageAction {
     }
 }
 
-export function peerConnected(id: string) : IPeerConnectedAction {
-    let newPeer = new Peer;
-    
-    newPeer.id = id;
-
+export function peerConnected(peer: Peer) : IPeerConnectedAction {
     return {
         type: ActionTypeKeys.PEER_CONNECTED,
-        peer: newPeer
+        peer: peer
     }
 }
 
@@ -74,12 +76,19 @@ export function peerDisconnected(id: string) : IPeerDisconnectedAction {
     }
 }
 
-export function infoUpdated(info: Info) : IInfoUpdatedAction {
+export function peerUpdated(peer: Peer) : IPeerUpdatedAction {
+    return {
+        type: ActionTypeKeys.PEER_UPDATED,
+        peer
+    }
+}
+
+export function infoUpdated(peer: Peer) : IInfoUpdatedAction {
     return {
         type: ActionTypeKeys.INFO_UPDATED,
-        info: info
+        peer: peer
     }
 }
 
 export type IActions = ISendMessageAction | IReceiveMessageAction
-    | IPeerConnectedAction | IPeerDisconnectedAction | IInfoUpdatedAction
+    | IPeerConnectedAction | IPeerDisconnectedAction | IPeerUpdatedAction | IInfoUpdatedAction

@@ -2,7 +2,7 @@ import {Message, Peer} from ".";
 
 export class State {
     messages: Message[];
-    uuid: string;
+    local: Peer; // Stores peer info about me.
     peers: Peer[];
 
     constructor() {

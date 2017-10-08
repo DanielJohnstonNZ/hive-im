@@ -1,5 +1,7 @@
+import {Peer} from "."
+
 export class Message{
-    public source: string;
+    public source: Peer;
     public destination: string;
     public type: MessageType;
     public body: any;
