@@ -1,5 +1,3 @@
-export * from "./peerMessage";
-
-export * from "./serverMessage";
-
-export * from "./state"
+export * from "./message";
+export * from "./peer";
+export * from "./state";

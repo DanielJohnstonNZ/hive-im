@@ -1,20 +1,28 @@
-import {ServerMessage, ServerMessageType, State} from "../models"
-import {ActionTypes} from "../actions"
+import {Message, MessageType, State, Peer} from "../models"
+import {ActionTypeKeys, IActions} from "../actions"
 
-export function appReducer(state: State = new State(), action: any) : State {
+export function appReducer(state: State = new State(), action: IActions) : State {
     switch (action.type) {
-        case ActionTypes.PEER_RECEIVE_MESSAGE:
-            return {...state, messages: [...state.messages, action.message]};
-        case ActionTypes.PEER_SEND_MESSAGE:
-            action.message.source = state.uuid;
+        case ActionTypeKeys.RECEIVE_MESSAGE:
+            console.log(action);
+            action.message.timestamp = new Date;
 
             return {...state, messages: [...state.messages, action.message]};
-        case ActionTypes.SERVER_RECEIVE_MESSAGE:
-            // If we are receiving a message but we don't know our UUID yet, update that.
-            if (!state.uuid) {
-                return {...state, uuid: action.message.destination}
-            }
-            return state;
+        case ActionTypeKeys.SEND_MESSAGE:
+            action.message.source = state.local;
+            action.message.timestamp = new Date;
+
+            return {...state, messages: [...state.messages, action.message]};
+        case ActionTypeKeys.PEER_CONNECTED:
+            return {...state, peers: [...state.peers, action.peer]};
+        case ActionTypeKeys.PEER_DISCONNECTED:
+            return {...state, peers: state.peers.filter((peer: Peer) => peer.id != action.peer.id)}
+        case ActionTypeKeys.PEER_UPDATED:
+            return {...state, 
+                peers: state.peers.map((existing: Peer) => existing.id == action.peer.id ? action.peer : existing)}
+        case ActionTypeKeys.INFO_UPDATED:
+            return {...state, local: action.peer}
+        
     }
     return state;
 }

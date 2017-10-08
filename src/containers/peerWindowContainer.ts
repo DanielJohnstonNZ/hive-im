@@ -1,10 +1,10 @@
 import { connect } from "react-redux"
-import { ChatFeed } from "../components"
+import { PeerWindow } from "../components"
 import { State } from "../models"
 
 const mapStateToProps = (state: State, ownProps: any) => {
   return {
-    messages: state.messages
+      peers: state.peers
   }
 }
 
@@ -13,8 +13,7 @@ const mapDispatchToProps = (dispatch: any, ownProps: any) => {
   }
 }
 
-export const ChatFeedContainer = connect(
+export const PeerWindowContainer = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ChatFeed)
-
+)(PeerWindow)

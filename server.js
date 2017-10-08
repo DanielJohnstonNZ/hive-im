@@ -23,16 +23,30 @@ let clients = {};
 const wss = new SocketServer({ server });
 
 wss.on('connection', (ws) => {
-    var clientUuid = uuid();
-    webSocketLogger('Connection Opened: ' + clientUuid);
+    var clientInfo = {
+        id: uuid(),
+        displayName: "User" + Math.round(Math.random() * 100)
+    };
+
+    webSocketLogger('Connection Opened: ' + clientInfo.id);
     
     for (var existing in clients) {
         webSocketLogger("Notifying " + existing);
-        clients[existing].send(JSON.stringify({source: clientUuid, type: 0}));
+        clients[existing].send(JSON.stringify({
+            source: clientInfo, 
+            type: 0,
+            body: clientInfo
+        }));
     }
 
+    // Send the info packet to the client.
+    ws.send(JSON.stringify({
+        type: 5,
+        body: clientInfo
+    }));
+
     // Add the new client to the directory.
-    clients[clientUuid] = ws;
+    clients[clientInfo.id] = ws;
 
     ws.on('message', function(message) {
         var messageObj;
@@ -50,7 +64,7 @@ wss.on('connection', (ws) => {
         webSocketLogger(messageObj);
 
         webSocketLogger("Message received for " + messageObj.destination);
-        messageObj.source = clientUuid;
+        messageObj.source = clientInfo;
 
         if (messageObj.destination && clients[messageObj.destination]) {
             clients[messageObj.destination].send(JSON.stringify(messageObj));
@@ -61,11 +75,17 @@ wss.on('connection', (ws) => {
     });
 
     ws.on('close', function() {
-        if (clientUuid && clients[clientUuid]) {
-            webSocketLogger('Connection Closed to ' + clientUuid);
-            delete clients[clientUuid];
+        if (clients[clientInfo.id]) {
+            webSocketLogger('Connection Closed to ' + clientInfo.id);
+            delete clients[clientInfo.id];
         } else {
             webSocketLogger('Connection Closed to unknown');
+        }
+
+        // Notify other clients of the disconnection.
+        for (var existing in clients) {
+            webSocketLogger("Notifying " + existing);
+            clients[existing].send(JSON.stringify({source: clientInfo.id, type: 3}));
         }
     });
 });

@@ -8,8 +8,9 @@ import {Provider} from "react-redux"
 import {PeerMiddleware} from "./middleware"
 import {appReducer} from "./reducers"
 import {State} from "./models"
+import {IActions} from "./actions"
 
-const store: Store<State> = createStore(appReducer, applyMiddleware(PeerMiddleware));
+const store: Store<State> = createStore<State>(appReducer, applyMiddleware(PeerMiddleware));
 
 ReactDOM.render(
     <Provider store={store}><App/></Provider>,

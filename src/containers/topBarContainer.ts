@@ -1,10 +1,10 @@
 import { connect } from "react-redux"
-import { ChatFeed } from "../components"
+import { TopBar, ITopBarProps } from "../components"
 import { State } from "../models"
 
-const mapStateToProps = (state: State, ownProps: any) => {
+const mapStateToProps = (state: State, ownProps: ITopBarProps) => {
   return {
-    messages: state.messages
+      localInfo: state.local
   }
 }
 
@@ -13,8 +13,7 @@ const mapDispatchToProps = (dispatch: any, ownProps: any) => {
   }
 }
 
-export const ChatFeedContainer = connect(
+export const TopBarContainer = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ChatFeed)
-
+)(TopBar)
