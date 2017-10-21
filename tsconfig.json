@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-      "outDir": "./dist/",
+      "outDir": "./webroot/",
       "sourceMap": true,
       "noImplicitAny": true,
       "moduleResolution": "node",
@@ -12,6 +12,7 @@
     },
     "compileOnSave": false,
     "exclude": [
-      "node_modules"
+      "node_modules",
+      "src"
     ]
   }

@@ -1,28 +1,26 @@
-const express = require('express');
-const SocketServer = require('ws').Server;
-const path = require('path');
-
-var uuid = require('uuid/v4')
+import * as express from 'express'
+import {Server}  from 'ws';
+import * as uuid from 'uuid/v4'
+import * as debug from "debug";
 
 var httpLogger = require('debug')('http')
 var webSocketLogger = require('debug')('websocket')
 
 const PORT = process.env.PORT || 8080;
-const INDEX = path.join(__dirname, '/dist/index.html');
 
 const server = express()
-    .use(function (req, res, next) {
+    .use(function (req: any, res: any, next: any) {
         httpLogger(req.url);
         next();
     })
-  .use(express.static('dist'))
+  .use(express.static('webroot'))
   .listen(PORT, () => httpLogger(`Listening on ${ PORT }`));
 
-let clients = {};
+let clients: any = {};
 
-const wss = new SocketServer({ server });
+const wss = new Server({ server });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws: any) => {
     var clientInfo = {
         id: uuid(),
         displayName: "User" + Math.round(Math.random() * 100)
@@ -48,7 +46,7 @@ wss.on('connection', (ws) => {
     // Add the new client to the directory.
     clients[clientInfo.id] = ws;
 
-    ws.on('message', function(message) {
+    ws.on('message', function(message: any) {
         var messageObj;
 
         try
