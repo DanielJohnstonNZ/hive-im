@@ -1,4 +1,4 @@
-import {Peer} from "."
+import {Peer} from "./peer"
 
 export class Message{
     public source: Peer;
