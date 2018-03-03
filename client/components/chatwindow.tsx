@@ -1,10 +1,9 @@
 import * as React from "react";
+import { connect } from "react-redux"
+import { State } from "../models"
+import { sendTextMessage } from "../actions"
 
 const chatContainerStyle: object = {
-    position: "absolute",
-    left: "20%",
-    bottom: 0,
-    right: 0,
     height: 40,
     border: "none",
     borderTop: "1px solid #555"
@@ -21,10 +20,10 @@ const chatContainerInputStyle: object = {
 }
 
 const chatSendIconStyle: object = {
+    margin: 0,
+    display: 'block',
+    float: "left",
     cursor: "pointer",
-    position: "absolute",
-    right: 0,
-    top: 0,
     width: 36,
     height: 36,
     backgroundSize: "36px 36px",
@@ -35,7 +34,7 @@ const chatSendIconStyle: object = {
 interface IChatWindowState {message: string};
 interface IChatWindowProps {onMessageSend: (message: string) => void};
 
-export class ChatWindow extends React.Component<IChatWindowProps, IChatWindowState> {
+class ChatWindowComponent extends React.Component<IChatWindowProps, IChatWindowState> {
     constructor(props: any) {
         super(props);
 
@@ -46,10 +45,12 @@ export class ChatWindow extends React.Component<IChatWindowProps, IChatWindowSta
 
     render() {
         return <div style={chatContainerStyle}>
-            <input type="text" style={chatContainerInputStyle} placeholder="Type a message." 
-                value={this.state.message} 
-                onKeyDown={this.handleMessageOnKeydown.bind(this)}
-                onChange={this.handleMessageOnChange.bind(this)}/>
+            <div style={{float: "left", width: "calc(100% - 36px)", height: "100%"}}>
+                <input type="text" style={chatContainerInputStyle} placeholder="Type a message." 
+                    value={this.state.message} 
+                    onKeyDown={this.handleMessageOnKeydown.bind(this)}
+                    onChange={this.handleMessageOnChange.bind(this)}/>
+            </div>
             <div style={chatSendIconStyle} onClick={this.handleOnSend.bind(this)}></div>
         </div>
     }
@@ -72,3 +73,19 @@ export class ChatWindow extends React.Component<IChatWindowProps, IChatWindowSta
         }
     }
 }
+
+const mapStateToProps = (state: State, ownProps: any) => {
+  return {
+  }
+}
+
+const mapDispatchToProps = (dispatch: any, ownProps: any) => {
+  return {
+    onMessageSend: (message: string) => dispatch(sendTextMessage(message))
+  }
+}
+
+export const ChatWindow = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ChatWindowComponent)

@@ -1,16 +1,18 @@
 import * as React from "react";
-
 import {Message} from "../models";
+import {ChatWindow} from ".";
 
 interface IChatFeedProps { messages: Message[] }
 
 const feedContainerStyle : object = {
-    position: "absolute",
-    left: "20%",
-    top: 40,
-    bottom: 40,
-    right: 0,
+    float: "left",
+    width: "20vw",
+    height: "100vh",
     overflowY: "auto"
+}
+
+const feedStyle: object = {
+    height: "calc(100% - 40px)"
 }
 
 const chatContainerStyle: object = {
@@ -37,16 +39,40 @@ const chatTimeStyle: object = {
     display: "inline-block"
 }
 
-export class ChatFeed extends React.Component<IChatFeedProps, undefined> {
+class ChatFeedComponent extends React.Component<IChatFeedProps, undefined> {
     render() {
         return <div style={feedContainerStyle}>
-                {this.props.messages.map(function(message: Message, index: number) {
-                    return <div key={index}><div style={chatContainerStyle}>
-                        <div>{message.body}</div>
-                        <div style={chatUserStyle}>{message.source.displayName}</div> 
-                        <div style={chatTimeStyle}>{message.timestamp.toLocaleTimeString()}</div>
-                    </div></div>
-                })}
+                <div style={feedStyle}>
+                    {this.props.messages.map(function(message: Message, index: number) {
+                        return <div key={index}><div style={chatContainerStyle}>
+                            <div>{message.body}</div>
+                            <div style={chatUserStyle}>{message.source.displayName}</div> 
+                            <div style={chatTimeStyle}>{message.timestamp.toLocaleTimeString()}</div>
+                        </div></div>
+                    })}
+                </div>
+
+                <ChatWindow/>
         </div>
     }
 }
+
+import { connect } from "react-redux"
+import { State } from "../models"
+
+const mapStateToProps = (state: State, ownProps: any) => {
+  return {
+    messages: state.messages
+  }
+}
+
+const mapDispatchToProps = (dispatch: any, ownProps: any) => {
+  return {
+  }
+}
+
+export const ChatFeed = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ChatFeedComponent)
+
