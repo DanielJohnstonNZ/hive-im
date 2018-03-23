@@ -35,10 +35,10 @@
     "ws": "^3.2.0"
   },
   "scripts": {
+    "install": "webpack && ./node_modules/typescript/bin/tsc -p server",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack && ./node_modules/typescript/bin/tsc -p server && node ./bin/server/server.js",
-    "debug": "DEBUG=http,websocket node ./bin/server/server.js",
-    "build": "webpack && ./node_modules/typescript/bin/tsc -p server"
+    "start": "node ./bin/server/server.js",
+    "debug": "DEBUG=http,websocket node ./bin/server/server.js"
   },
   "engines": {
     "node": "8.6.0"
