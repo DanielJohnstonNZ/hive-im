@@ -1,52 +1,87 @@
 import {PeerConnection} from "./peerConnection"
-import {Message, MessageType, Peer} from "../models"
+import {Message, MessageType, MetaData, Peer, MetaDataType} from "../models"
 
 export class PeerFactory {
     private activePeers: { [id: string]: PeerConnection; };
 
     public onMessage: (message: Message) => void;
-    public onConnection: (id: Peer) => void;
+    public onMetaDataOut: (data: MetaData) => void;
+    public onConnection: (id: string) => void;
 
     constructor() {
         this.activePeers = {};
     }
 
-    public getConnection(peer: Peer) {
-        if (!this.activePeers[peer.id]) {
+    public getConnection(peerId: string) {
+        if (!this.activePeers[peerId]) {
             let pc: PeerConnection = new PeerConnection();
 
             pc.onIceCandidate = (candidate: RTCIceCandidate) => {
-                let message: Message = new Message;
-                message.body = candidate;
-                message.destination = peer.id;
-                message.type = MessageType.ICE;
+                let data: MetaData = new MetaData(
+                    peerId,
+                    MetaDataType.ICE,
+                    candidate
+                );
 
-                this.onMessage(message);
+                this.onMetaDataOut(data);
             }
 
             pc.onLocalDescription = (description: RTCSessionDescription) => {
-                let message: Message = new Message;
-                message.body = description;
-                message.destination = peer.id;
-                message.type = MessageType.SDP;
+                let data: MetaData = new MetaData(
+                    peerId,
+                    MetaDataType.SDP,
+                    description
+                );
 
-                this.onMessage(message);
+                this.onMetaDataOut(data);
             }
 
             pc.onConnected = () => {
-                this.onConnection(peer);
+                this.onConnection(peerId);
             }
 
             pc.onDataMessage = (message: Message) => {
-                message.source = peer;
+                //message.source = peer;
 
                 this.onMessage(message);
             }
 
-            this.activePeers[peer.id] = pc;
+            this.activePeers[peerId] = pc;
         }
 
-        return this.activePeers[peer.id];
+        return this.activePeers[peerId];
+    }
+
+    public metaDataInput(data: MetaData) {
+        switch(data.type) {
+            case MetaDataType.HI:
+                this.getConnection(data.id)
+                    .createOffer();
+
+                
+                break;
+            case MetaDataType.SDP:
+                this.getConnection(data.id)
+                    .addRemoteDescription(data.payload);
+                break;
+            case MetaDataType.ICE:
+                this.getConnection(data.id)
+                    .addIceCandidate(data.payload);
+                break;
+        }
+    }
+
+    public messagePeer(message: Message) {
+         switch (message.type) {
+            case MessageType.BYE:
+                console.log(message)
+                //dispatch(Actions.peerDisconnected(message.source.id));
+                //break;
+            case MessageType.INFO:
+                console.log(message);
+                //dispatch(Actions.infoUpdated(message.body));
+                //break;
+        }
     }
 
     public messageAll(message: Message) {

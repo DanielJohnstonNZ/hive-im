@@ -3,8 +3,7 @@ import * as http from 'http';
 import * as uuid from 'uuid/v4';
 import * as debug from "debug";
 
-import {Message, MessageType} from "../../common/message"
-import {Peer} from "../../common/peer"
+import {MetaData,MetaDataType} from "../../common/metadata"
 
 export class PeerHandler {
     private socket: Server;
@@ -20,35 +19,21 @@ export class PeerHandler {
     }
 
     private handleNewPeer(socket: any) {
-        let clientInfo: Peer = {
-            id: uuid(),
-            displayName: "User" + Math.round(Math.random() * 100)
-        };
+        let clientId = uuid();
     
-        this.logger('Connection Opened: ' + clientInfo.id);
+        this.logger('Connection Opened: ' + clientId);
     
-        let hiMessage: Message = new Message();
-        hiMessage.type = MessageType.HI;
-        hiMessage.source = clientInfo;
-        hiMessage.body = clientInfo;
-
-        this.broadcast(hiMessage);
-    
-        // Send the info packet to the client.
-        socket.send(JSON.stringify({
-            type: 5,
-            body: clientInfo
-        }));
+        this.broadcast(new MetaData(clientId, MetaDataType.HI, null));
     
         // Add the new client to the directory.
-        this.clients[clientInfo.id] = socket;
+        this.clients[clientId] = socket;
     
-        socket.on('message', (message: any) => this.handlePeerMessage(message, clientInfo));
-        socket.on('close', () => this.handlePeerDisconnection(clientInfo));
+        socket.on('message', (message: any) => this.handlePeerMessage(message, clientId));
+        socket.on('close', () => this.handlePeerDisconnection(clientId));
     }
 
-    private handlePeerMessage(message: string, clientInfo: any) {
-        var messageObj: Message;
+    private handlePeerMessage(message: string, clientId: string) {
+        var messageObj: MetaData;
         
         try {
             messageObj = JSON.parse(message);
@@ -59,34 +44,31 @@ export class PeerHandler {
         }
 
         this.logger(messageObj);
-        this.logger("Message received for " + messageObj.destination);
-        messageObj.source = clientInfo;
+        this.logger("Message received for " + messageObj.id);
 
-        if (messageObj.destination && this.clients[messageObj.destination]) {
-            this.clients[messageObj.destination].send(JSON.stringify(messageObj));
-            this.logger("Message passed to " + messageObj.destination)
+        if (messageObj.id && this.clients[messageObj.id]) {
+            let destinationId = messageObj.id;
+
+            // Update the Id to the source.
+            messageObj.id = clientId;
+
+            this.clients[destinationId].send(JSON.stringify(messageObj));
+            this.logger("Message passed to " + destinationId)
         } else {
             this.logger("Client not found");
         }
     }
 
-    private handlePeerDisconnection(clientInfo: Peer) {
-        if (this.clients[clientInfo.id]) {
-            this.logger('Connection Closed to ' + clientInfo.id);
-            delete this.clients[clientInfo.id];
+    private handlePeerDisconnection(clientId: string) {
+        if (this.clients[clientId]) {
+            this.logger('Connection Closed to ' + clientId);
+            delete this.clients[clientId];
         } else {
             this.logger('Connection Closed to unknown');
         }
-
-        let byeMessage: Message = new Message();
-        byeMessage.type = MessageType.BYE;
-        byeMessage.source = clientInfo;
-
-        // Notify other clients of the disconnection.
-        this.broadcast(byeMessage);
     }
 
-    private broadcast(message: Message) {
+    private broadcast(message: MetaData) {
         for (var existing in this.clients) {
             this.logger("Notifying " + existing);
             this.clients[existing].send(JSON.stringify(message));
