@@ -7,7 +7,7 @@ export class HttpHandler {
     private logger: debug.IDebugger;
 
     private readonly port: string = process.env.PORT || '8080';
-    private readonly root: string = 'webroot';
+    private readonly root: string = '../webroot';
 
     constructor() {
         this.logger = debug('http');

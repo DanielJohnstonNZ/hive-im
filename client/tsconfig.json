@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-      "outDir": "./webroot/",
+      "outDir": "../webroot/",
       "sourceMap": true,
       "noImplicitAny": true,
       "moduleResolution": "node",

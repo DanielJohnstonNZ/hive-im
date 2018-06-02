@@ -3,7 +3,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var webpack = require('webpack');
 
 module.exports = {
-    context: path.join(__dirname, 'client'),
+    context: __dirname,
     entry: {
         main: './index.tsx',
         vendor: ['react', 'react-dom', 'webrtc-adapter']
@@ -11,7 +11,7 @@ module.exports = {
     devtool: "source-map",
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, 'webroot')
+        path: path.resolve(__dirname, '../webroot')
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".css"],
