@@ -1,2 +1,2 @@
 SET DEBUG=http,websocket
-npm start
+npm run watch
