@@ -4,6 +4,8 @@ import * as debug from "debug";
 import { Peer } from "./Peer";
 import { MetaData, MetaDataType } from "..";
 
+import * as WebSocket from "ws";
+
 const LogWebSocket = (data: any) => debug("websocket")(data);
 
 export class PeerHandler {

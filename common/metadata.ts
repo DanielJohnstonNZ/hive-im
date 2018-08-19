@@ -13,5 +13,6 @@ export class MetaData {
 export enum MetaDataType {
     HI = 0,
     SDP = 1,
-    ICE = 2
+    ICE = 2,
+    ROOM = 3
 }

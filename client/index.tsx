@@ -2,17 +2,25 @@ import { App } from "./app";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {createStore, Store, applyMiddleware} from "redux"
-import {Provider} from "react-redux"
+import { createStore, Store, applyMiddleware, combineReducers } from "redux";
+import { Provider } from "react-redux";
+import { createEpicMiddleware } from "redux-observable";
 
-import "./actions/newPeer"
-import {appReducer} from "./reducers"
-import {State} from "./models"
-import {IActions} from "./actions"
+import { SupportCheck } from "./components";
+import { epicRoot, reducerRoot, IRootState } from "./redux";
 
-const store: Store<State> = createStore<State>(appReducer);
+const epicMiddleware = createEpicMiddleware(epicRoot);
+
+export const store: Store<IRootState> = createStore<IRootState>(
+  reducerRoot,
+  applyMiddleware(epicMiddleware)
+);
 
 ReactDOM.render(
-    <Provider store={store}><App/></Provider>,
-    document.getElementById("app")
+  <SupportCheck>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </SupportCheck>,
+  document.getElementById("app")
 );

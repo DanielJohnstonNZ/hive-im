@@ -1,5 +1,6 @@
 import * as uuid from "uuid/v4";
 import { MetaData, MetaDataType } from "../";
+import * as WebSocket from "ws";
 
 // Represents a single user connection
 export class Peer {
@@ -7,8 +8,7 @@ export class Peer {
     this.connection = connection;
     this.id = uuid();
 
-    connection.onmessage = (event: MessageEvent) =>
-      this.handlePeerMessage(event);
+    connection.onmessage = (event: any) => this.handlePeerMessage(event);
 
     connection.onclose = () => this.onDisconnect();
   }

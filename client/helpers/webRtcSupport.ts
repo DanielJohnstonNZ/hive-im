@@ -1,1 +1,1 @@
-export const WebRTCSupport = typeof RTCPeerConnection != 'undefined';
+export const WebRTCSupport = typeof RTCPeerConnection != "undefined";

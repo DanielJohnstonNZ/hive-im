@@ -1,13 +1,19 @@
-import {ChatFeed, PeerWindow} from "./components";
-import {SupportCheck} from "./components"
+import { ChatFeedComponent, PeerWindowComponent } from "./components";
 
 import * as React from "react";
+import { store } from ".";
+import { appLoad } from "./redux/app/actions";
 
 export class App extends React.Component<undefined, undefined> {
-    render() {
-        return <SupportCheck>
-            <PeerWindow/>
-            <ChatFeed/>
-        </SupportCheck>;
-    }
+  componentDidMount() {
+    store.dispatch(appLoad());
+  }
+  render() {
+    return (
+      <div>
+        <PeerWindowComponent />
+        <ChatFeedComponent />
+      </div>
+    );
+  }
 }
