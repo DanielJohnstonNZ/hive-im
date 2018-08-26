@@ -17,10 +17,12 @@ import {
   socketConnecting,
   socketSend,
   ISocketSelectRoom,
-  socketSent
+  socketSent,
+  ISocketSendSdpAction,
+  ISocketSendIceAction
 } from "./actions";
 
-import { MetaDataType } from "../../../common/metadata";
+import { MetaDataType, MetaData } from "../../../common/metadata";
 
 let connection: WebSocket;
 
@@ -69,6 +71,36 @@ const onSocketSend: Epic<IActions, WebSocketState> = action$ =>
     )
     .map((action: ISocketSendAction) => socketSent(action.message));
 
+// on a send, send the message to the socket.
+const onSocketSendSdp: Epic<IActions, WebSocketState> = action$ =>
+  action$
+    .ofType("websocket/SOCKET_SEND_SDP")
+    .do((action: ISocketSendSdpAction) => {
+      let data: MetaData = new MetaData(
+        action.id,
+        MetaDataType.SDP,
+        action.sdp
+      );
+
+      connection && connection.send(JSON.stringify(data));
+    })
+    .map((action: ISocketSendAction) => socketSent(action.message));
+
+// on a send, send the message to the socket.
+const onSocketSendIce: Epic<IActions, WebSocketState> = action$ =>
+  action$
+    .ofType("websocket/SOCKET_SEND_ICE")
+    .do((action: ISocketSendIceAction) => {
+      let data: MetaData = new MetaData(
+        action.id,
+        MetaDataType.ICE,
+        action.candidate
+      );
+
+      connection && connection.send(JSON.stringify(data));
+    })
+    .map((action: ISocketSendAction) => socketSent(action.message));
+
 // On app load, initiate the connection to the websocket.
 const onAppLoad: Epic<IActions, WebSocketState> = action$ =>
   action$.ofType("APP_LOAD").mapTo(socketConnecting());
@@ -79,5 +111,7 @@ export const websocketEpic = combineEpics(
   onConnect,
   onRoomSelct,
   onSocketSend,
+  onSocketSendIce,
+  onSocketSendSdp,
   onAppLoad
 );

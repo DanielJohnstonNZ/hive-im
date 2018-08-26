@@ -2,7 +2,13 @@ import { App } from "./app";
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { createStore, Store, applyMiddleware, combineReducers } from "redux";
+import {
+  compose,
+  createStore,
+  Store,
+  applyMiddleware,
+  combineReducers
+} from "redux";
 import { Provider } from "react-redux";
 import { createEpicMiddleware } from "redux-observable";
 

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Message } from "../redux";
-import { ChatWindowComponent } from ".";
+//import { Message } from "../redux";
+import { ChatWindowContainer } from ".";
 
 interface IChatFeedProps {}
 interface IChatFeedState {}
@@ -48,7 +48,7 @@ export class ChatFeedComponent extends React.Component<
     return (
       <div style={feedContainerStyle}>
         <div style={feedStyle}>
-          {[].map(function(message: Message, index: number) {
+          {[].map(function(message: any, index: number) {
             return (
               <div key={index}>
                 <div style={chatContainerStyle}>
@@ -63,7 +63,7 @@ export class ChatFeedComponent extends React.Component<
           })}
         </div>
 
-        <ChatWindowComponent />
+        <ChatWindowContainer />
       </div>
     );
   }

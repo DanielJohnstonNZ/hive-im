@@ -1,8 +1,10 @@
 import * as React from "react";
-import { Peer } from "../redux";
+// import { Peer } from "../redux";
 import { PeerDisplay } from ".";
 import { IRootState } from "../redux";
 //import { PeerListStreamInput } from "../streams/peers";
+
+import { connect } from "react-redux";
 
 const peerContainerStyle: object = {
   backgroundColor: "#E5E5E5",
@@ -12,21 +14,17 @@ const peerContainerStyle: object = {
   color: "white"
 };
 
-interface IPeerWindowProps {}
-interface IPeerWindowState {
-  peers: Peer[];
+interface IPeerWindowProps {
+  peers: any[];
 }
 
-export class PeerWindowComponent extends React.PureComponent<
-  IPeerWindowProps,
-  IPeerWindowState
-> {
+class PeerWindow extends React.PureComponent<IPeerWindowProps, {}> {
   constructor() {
     super();
 
-    this.state = {
-      peers: []
-    };
+    // this.state = {
+    //   peers: []
+    // };
   }
 
   componentDidMount() {
@@ -53,10 +51,26 @@ export class PeerWindowComponent extends React.PureComponent<
 
         <PeerDisplay peer={null} />
 
-        {this.state.peers.map(function(peer: Peer, index: number) {
-          return <PeerDisplay key={index} peer={peer} />;
-        })}
+        {this.props.peers &&
+          this.props.peers.map(function(peer: any, index: number) {
+            return <PeerDisplay key={index} peer={peer} />;
+          })}
       </div>
     );
   }
 }
+
+const mapStateToProps = (state: IRootState) => {
+  return {
+    peers: state.peer.peers
+  };
+};
+
+const mapDispatchToProps = (dispatch: any) => {
+  return {};
+};
+
+export const PeerWindowContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(PeerWindow);

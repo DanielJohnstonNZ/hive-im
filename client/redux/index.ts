@@ -11,13 +11,18 @@ import * as peers from "./peer";
 export class IRootState {
   app: app.AppState;
   websocket: websocket.WebSocketState;
+  peer: peers.PeerState;
 }
 
 export type IActions = app.IActions | websocket.IActions | peers.IActions;
 
-export const epicRoot = combineEpics(websocket.websocketEpic, peers.peerEpics);
+export const epicRoot = combineEpics<any>(
+  websocket.websocketEpic,
+  peers.peerEpics
+);
 
 export const reducerRoot = combineReducers<IRootState>({
   app: app.appReducer,
-  websocket: websocket.reducer
+  websocket: websocket.reducer,
+  peer: peers.reducer
 });

@@ -1,4 +1,8 @@
 import * as React from "react";
+import { connect, Dispatch } from "react-redux";
+
+import { IRootState } from "../redux";
+import * as peerActions from "../redux/peer";
 
 const chatContainerStyle: object = {
   height: 40,
@@ -32,9 +36,11 @@ const chatSendIconStyle: object = {
 interface IChatWindowState {
   message: string;
 }
-interface IChatWindowProps {}
+interface IChatWindowProps {
+  onSend: (message: string) => void;
+}
 
-export class ChatWindowComponent extends React.Component<
+export class ChatWindow extends React.Component<
   IChatWindowProps,
   IChatWindowState
 > {
@@ -67,6 +73,7 @@ export class ChatWindowComponent extends React.Component<
   }
 
   private handleOnSend() {
+    this.props.onSend(this.state.message);
     this.setState({ message: "" });
   }
 
@@ -82,3 +89,16 @@ export class ChatWindowComponent extends React.Component<
     }
   }
 }
+
+const mapStateToProps = (state: IRootState) => {
+  return {};
+};
+
+const mapDispatchToProps = (dispatch: Dispatch<any>) => ({
+  onSend: (message: string) => dispatch(peerActions.sendMessage(message))
+});
+
+export const ChatWindowContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ChatWindow);

@@ -1,16 +1,10 @@
 import { PeerConnection } from "./peerConnection";
-import { Message, MessageType, Peer } from "../redux";
-
 import { MetaDataType, MetaData } from "../../common/metadata";
-
-import { socketSend, socketSent } from "../redux/websocket";
+import * as websocketActions from "../redux/websocket";
 import { store } from "../";
 
 export class PeerFactory {
   private activePeers: { [id: string]: PeerConnection };
-
-  public onMessage: (message: Message) => void;
-  public onConnection: (id: string) => void;
 
   constructor() {
     this.activePeers = {};
@@ -18,35 +12,7 @@ export class PeerFactory {
 
   public getConnection(peerId: string) {
     if (!this.activePeers[peerId]) {
-      let pc: PeerConnection = new PeerConnection();
-
-      pc.onIceCandidate = (candidate: RTCIceCandidate) => {
-        let data: MetaData = new MetaData(peerId, MetaDataType.ICE, candidate);
-
-        store.dispatch(socketSend(data));
-      };
-
-      pc.onLocalDescription = (description: RTCSessionDescription) => {
-        let data: MetaData = new MetaData(
-          peerId,
-          MetaDataType.SDP,
-          description
-        );
-
-        store.dispatch(socketSend(data));
-      };
-
-      pc.onConnected = () => {
-        this.onConnection(peerId);
-      };
-
-      pc.onDataMessage = (message: Message) => {
-        //message.source = peer;
-
-        this.onMessage(message);
-      };
-
-      this.activePeers[peerId] = pc;
+      this.activePeers[peerId] = new PeerConnection(peerId);
     }
 
     return this.activePeers[peerId];
@@ -67,20 +33,7 @@ export class PeerFactory {
     }
   }
 
-  public messagePeer(message: Message) {
-    switch (message.type) {
-      case MessageType.BYE:
-        console.log(message);
-      //dispatch(Actions.peerDisconnected(message.source.id));
-      //break;
-      case MessageType.INFO:
-        console.log(message);
-      //dispatch(Actions.infoUpdated(message.body));
-      //break;
-    }
-  }
-
-  public messageAll(message: Message) {
+  public messageAll(message: string) {
     for (var i in this.activePeers) {
       this.activePeers[i].messagePeer(message);
     }

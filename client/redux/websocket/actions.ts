@@ -22,6 +22,18 @@ export interface ISocketSendAction {
   message: MetaData;
 }
 
+export interface ISocketSendIceAction {
+  type: "websocket/SOCKET_SEND_ICE";
+  id: string;
+  candidate: RTCIceCandidate;
+}
+
+export interface ISocketSendSdpAction {
+  type: "websocket/SOCKET_SEND_SDP";
+  id: string;
+  sdp: RTCSessionDescription;
+}
+
 export interface ISocketSentAction {
   type: "websocket/SOCKET_SENT";
   message: MetaData;
@@ -64,6 +76,28 @@ export function socketSend(message: MetaData): ISocketSendAction {
   };
 }
 
+export function socketSendIce(
+  id: string,
+  candidate: RTCIceCandidate
+): ISocketSendIceAction {
+  return {
+    type: "websocket/SOCKET_SEND_ICE",
+    id: id,
+    candidate: candidate
+  };
+}
+
+export function socketSendSdp(
+  id: string,
+  sdp: RTCSessionDescription
+): ISocketSendSdpAction {
+  return {
+    type: "websocket/SOCKET_SEND_SDP",
+    id: id,
+    sdp: sdp
+  };
+}
+
 export function socketSent(message: MetaData): ISocketSentAction {
   return {
     type: "websocket/SOCKET_SENT",
@@ -85,4 +119,6 @@ export type IActions =
   | ISocketMessageAction
   | ISocketSendAction
   | ISocketSentAction
+  | ISocketSendIceAction
+  | ISocketSendSdpAction
   | ISocketSelectRoom;

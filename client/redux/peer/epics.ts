@@ -8,7 +8,7 @@ import { ISocketMessageAction, socketSend } from "../websocket";
 import { MetaDataType, MetaData } from "../../../common/metadata";
 
 import { PeerFactory } from "../../helpers/peerFactory";
-import { metaSent } from "./actions";
+import { metaSent, IPeerSendMessageAction } from "./actions";
 
 const peerManager = new PeerFactory();
 
@@ -20,4 +20,12 @@ const onSocketMessage: Epic<IActions, PeerState> = action$ =>
     )
     .map((action: ISocketMessageAction) => metaSent());
 
-export const peerEpics = combineEpics(onSocketMessage);
+const onSendMessage: Epic<IActions, PeerState> = action$ =>
+  action$
+    .ofType("peer/SEND_MESSAGE")
+    .do((action: IPeerSendMessageAction) =>
+      peerManager.messageAll(action.message)
+    )
+    .map((action: ISocketMessageAction) => metaSent());
+
+export const peerEpics = combineEpics(onSocketMessage, onSendMessage);

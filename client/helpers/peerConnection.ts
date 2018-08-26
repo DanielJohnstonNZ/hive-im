@@ -1,5 +1,8 @@
 import { WebRTCSupport } from "./webRtcSupport";
-import { Message } from "../redux";
+
+import * as peerActions from "../redux/peer";
+import * as websocketActions from "../redux/websocket";
+import { store } from "../";
 
 const peerConnectionConfig = {
   iceServers: [
@@ -9,25 +12,27 @@ const peerConnectionConfig = {
 };
 
 export class PeerConnection {
+  private id: string;
+
   private rtcConnection: RTCPeerConnection;
   private rtcReceiveChannel: RTCDataChannel;
   private rtcSendChannel: RTCDataChannel;
 
-  public onIceCandidate: (candidate: RTCIceCandidate) => void;
   public onLocalDescription: (candidate: RTCSessionDescription) => void;
-  public onConnected: () => void;
-  public onDataMessage: (message: Message) => void;
 
-  constructor() {
+  constructor(id: string) {
     if (!WebRTCSupport) {
       // The browser doesn't support webrtc.
       return;
     }
 
+    this.id = id;
+
     this.rtcConnection = new RTCPeerConnection(peerConnectionConfig);
     this.rtcConnection.ondatachannel = event => {
       this.handleOnDataChannel(event);
     };
+
     this.rtcConnection.onicecandidate = event => {
       this.handleOnIceCandidate(event);
     };
@@ -64,14 +69,19 @@ export class PeerConnection {
   }
 
   private setLocalDescription(details: RTCSessionDescriptionInit) {
-    this.rtcConnection
-      .setLocalDescription(details)
-      .then(() => this.onLocalDescription(this.rtcConnection.localDescription));
+    this.rtcConnection.setLocalDescription(details).then(() => {
+      store.dispatch(
+        websocketActions.socketSendSdp(
+          this.id,
+          this.rtcConnection.localDescription
+        )
+      );
+    });
   }
 
   private handleOnIceCandidate(event: RTCPeerConnectionIceEvent) {
     if (event.candidate != null) {
-      this.onIceCandidate(event.candidate);
+      store.dispatch(websocketActions.socketSendIce(this.id, event.candidate));
     }
   }
 
@@ -79,24 +89,17 @@ export class PeerConnection {
     this.rtcReceiveChannel = event.channel;
 
     this.rtcReceiveChannel.onmessage = event => {
-      this.handleReceiveChannelOnMessage(event);
+      store.dispatch(peerActions.receiveMessage(event.data));
     };
+
     this.rtcReceiveChannel.onopen = () => {
-      this.handleReceiveChannelOnOpen();
+      store.dispatch(peerActions.connected(this.id));
     };
   }
 
-  private handleReceiveChannelOnMessage(event: MessageEvent) {
-    this.onDataMessage(JSON.parse(event.data));
-  }
-
-  private handleReceiveChannelOnOpen() {
-    this.onConnected();
-  }
-
-  public messagePeer(message: Message) {
+  public messagePeer(message: string) {
     if (this.rtcSendChannel.readyState == "open") {
-      this.rtcSendChannel.send(JSON.stringify(message));
+      this.rtcSendChannel.send(message);
     }
   }
 }

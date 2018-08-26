@@ -1,4 +1,4 @@
-import { ChatFeedComponent, PeerWindowComponent } from "./components";
+import { ChatFeedComponent, PeerWindowContainer } from "./components";
 
 import * as React from "react";
 import { store } from ".";
@@ -11,7 +11,7 @@ export class App extends React.Component<undefined, undefined> {
   render() {
     return (
       <div>
-        <PeerWindowComponent />
+        <PeerWindowContainer />
         <ChatFeedComponent />
       </div>
     );
