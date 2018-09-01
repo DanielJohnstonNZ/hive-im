@@ -1,18 +1,15 @@
 {
-    "compilerOptions": {
-      "outDir": "../webroot/",
-      "sourceMap": true,
-      "noImplicitAny": true,
-      "moduleResolution": "node",
-      "module": "commonjs",
-      "types": ["webrtc"],
-      "skipLibCheck": true,
-      "target": "es5",
-      "jsx": "react"
-    },
-    "compileOnSave": false,
-    "exclude": [
-      "node_modules",
-      "src"
-    ]
-  }
+  "compilerOptions": {
+    "outDir": "../webroot/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "types": ["webrtc"],
+    "skipLibCheck": true,
+    "target": "es6",
+    "jsx": "react"
+  },
+  "compileOnSave": false,
+  "exclude": ["node_modules", "src"]
+}

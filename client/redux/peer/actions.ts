@@ -1,5 +1,6 @@
-export interface IPeerMetaSentAction {
-  type: "peer/META_SENT";
+export interface IPeerConnectingAction {
+  type: "peer/CONNECTING";
+  id: string;
 }
 
 export interface IPeerConnectedAction {
@@ -12,14 +13,38 @@ export interface IPeerSendMessageAction {
   message: string;
 }
 
-export interface IPeerReceiveMessageAction {
-  type: "peer/RECEIVE_MESSAGE";
+export interface IPeerReceivedMessageAction {
+  type: "peer/RECEIVED_MESSAGE";
   message: string;
 }
 
-export function metaSent(): IPeerMetaSentAction {
+export interface IPeerReceivedHIAction {
+  type: "peer/RECEIVED_HI";
+  id: string;
+}
+
+export interface IPeerReceivedICEAction {
+  type: "peer/RECEIVED_ICE";
+  id: string;
+  candidate: RTCIceCandidate;
+}
+
+export interface IPeerSendSDPAction {
+  type: "peer/SEND_SDP";
+  id: string;
+  offer: boolean;
+}
+
+export interface IPeerReceivedSDPAction {
+  type: "peer/RECEIVED_SDP";
+  id: string;
+  description: RTCSessionDescription;
+}
+
+export function connecting(id: string): IPeerConnectingAction {
   return {
-    type: "peer/META_SENT"
+    type: "peer/CONNECTING",
+    id: id
   };
 }
 
@@ -37,15 +62,56 @@ export function sendMessage(message: string): IPeerSendMessageAction {
   };
 }
 
-export function receiveMessage(message: string): IPeerReceiveMessageAction {
+export function receiveMessage(message: string): IPeerReceivedMessageAction {
   return {
-    type: "peer/RECEIVE_MESSAGE",
+    type: "peer/RECEIVED_MESSAGE",
     message: message
   };
 }
 
+export function receivedHi(id: string): IPeerReceivedHIAction {
+  return {
+    type: "peer/RECEIVED_HI",
+    id: id
+  };
+}
+
+export function receivedIce(
+  id: string,
+  candidate: RTCIceCandidate
+): IPeerReceivedICEAction {
+  return {
+    type: "peer/RECEIVED_ICE",
+    id: id,
+    candidate: candidate
+  };
+}
+
+export function sendSdp(id: string, offer: boolean): IPeerSendSDPAction {
+  return {
+    type: "peer/SEND_SDP",
+    id: id,
+    offer: offer
+  };
+}
+
+export function receivedSdp(
+  id: string,
+  description: RTCSessionDescription
+): IPeerReceivedSDPAction {
+  return {
+    type: "peer/RECEIVED_SDP",
+    id: id,
+    description: description
+  };
+}
+
 export type IActions =
-  | IPeerMetaSentAction
+  | IPeerConnectingAction
   | IPeerConnectedAction
   | IPeerSendMessageAction
-  | IPeerReceiveMessageAction;
+  | IPeerSendSDPAction
+  | IPeerReceivedMessageAction
+  | IPeerReceivedHIAction
+  | IPeerReceivedSDPAction
+  | IPeerReceivedICEAction;

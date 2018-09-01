@@ -1,7 +1,8 @@
-export class PeerState {
-  constructor() {
-    this.peers = [];
-  }
+export class Peer {
+  id: string;
+  connected: boolean;
+}
 
-  peers: string[];
+export class PeerState {
+  peers: Peer[] = [];
 }
